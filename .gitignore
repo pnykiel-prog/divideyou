@@ -2,7 +2,7 @@ extracted/
 node_modules/
 dist/
 build/
-public/
+/public/
 .vercel/
 *.log
 .env
