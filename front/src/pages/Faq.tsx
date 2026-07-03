@@ -1,29 +1,52 @@
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { api } from '../api';
+import { Spinner, Empty } from '../ui';
 
 export default function Faq() {
   const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
 
-  useEffect(() => { api.get('/faq').then(setItems); }, []);
+  useEffect(() => {
+    api.get('/faq').then((d) => {
+      setItems(d);
+      if (d.length) setOpen(d[0].id);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Spinner />;
 
   return (
     <div>
-      <div className="page-head"><h1>Najczęściej zadawane pytania</h1></div>
-      <div className="card">
-        {items.map((f) => (
-          <div key={f.id} style={{ borderBottom: '1px solid var(--border)' }}>
-            <div
-              onClick={() => setOpen(open === f.id ? null : f.id)}
-              style={{ padding: '16px 20px', cursor: 'pointer', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}
-            >
-              {f.question}
-              <span className="muted">{open === f.id ? '−' : '+'}</span>
+      <div className="screen-head">
+        <h1 className="screen-title dy-h">Pomoc / FAQ</h1>
+        <p className="screen-sub">Najczęstsze pytania o działanie platformy.</p>
+      </div>
+
+      <div style={{ maxWidth: 760 }}>
+        {items.length === 0 && <Empty>Brak pytań.</Empty>}
+        {items.map((f) => {
+          const isOpen = open === f.id;
+          return (
+            <div className="faq-item" key={f.id}>
+              <div className="faq-q" onClick={() => setOpen(isOpen ? null : f.id)}>
+                <span>{f.question}</span>
+                <ChevronDown
+                  size={20}
+                  strokeWidth={2}
+                  style={{
+                    flex: 'none',
+                    color: 'var(--brand-600)',
+                    transition: 'transform .2s ease',
+                    transform: isOpen ? 'rotate(180deg)' : 'none',
+                  }}
+                />
+              </div>
+              {isOpen && <div className="faq-a">{f.answer}</div>}
             </div>
-            {open === f.id && <div className="muted" style={{ padding: '0 20px 18px' }}>{f.answer}</div>}
-          </div>
-        ))}
-        {items.length === 0 && <div className="empty">Brak pytań.</div>}
+          );
+        })}
       </div>
     </div>
   );

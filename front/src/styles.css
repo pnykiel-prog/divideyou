@@ -1,7 +1,7 @@
 /* ============================================================================
    DivideYou — consumer app design system
    Faithful implementation of the hi-fi handoff (docs/DESIGN_BRIEF + handoff).
-   Two brand themes (Petrol default / Midnight) swap only --brand*/--accent.
+   Two brand themes (Petrol default / Midnight) swap only the brand + accent tokens.
    ========================================================================== */
 
 :root {

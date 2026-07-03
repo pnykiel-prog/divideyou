@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
+import { Spinner, ErrorAlert, gradient } from '../ui';
+import { ArrowLeft, Gift, ShieldCheck } from 'lucide-react';
 
 export default function BonusDetail() {
   const { id } = useParams();
@@ -35,41 +37,90 @@ export default function BonusDetail() {
     try { await api.post(`/purchase/${existing.id}/cancel-bonus`, {}); load(); } catch (e: any) { alert(e.message); }
   };
 
-  if (!bonus) return <div className="spinner">Ładowanie…</div>;
+  if (!bonus) return <Spinner />;
+  const gallery: string[] = Array.isArray(bonus.gallery) ? bonus.gallery : [];
 
   return (
     <div>
-      <div style={{ marginBottom: 12 }}><Link to="/bonuses">← Powrót do bonusów</Link></div>
-      <div className="grid cols-2">
-        <div className="card pad">
-          <h1>{bonus.name}</h1>
-          <p className="muted">{bonus.description}</p>
-          <div className="grid cols-2" style={{ marginTop: 10 }}>
-            <div><div className="muted" style={{ fontSize: 12 }}>Cena</div><div style={{ fontWeight: 700 }}>{jr(bonus.entryFee)}</div></div>
-            <div><div className="muted" style={{ fontSize: 12 }}>Czas trwania</div><div style={{ fontWeight: 700 }}>{bonus.gracePeriod} mies.</div></div>
+      <div className="breadcrumbs">
+        <Link to="/bonuses">Bonusy</Link>
+        <span className="sep">/</span>
+        <span className="last">{bonus.name}</span>
+      </div>
+
+      <Link to="/bonuses" className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }}>
+        <ArrowLeft size={16} /> Wróć do bonusów
+      </Link>
+
+      <div className="grid-detail">
+        <div>
+          <div className="hero-media" style={{ background: gradient(bonus.id), marginBottom: 16 }}>
+            <span className="badge" style={{ background: 'rgba(255,255,255,.9)', color: 'var(--brand-600)', alignSelf: 'flex-start' }}>
+              <Gift size={13} /> BONUS
+            </span>
+            <div className="grow" />
+            <h1>{bonus.name}</h1>
+          </div>
+
+          {gallery.length > 0 && (
+            <div className="gallery-thumbs" style={{ marginBottom: 16 }}>
+              {gallery.slice(0, 4).map((_, i) => (
+                <div key={i} className="gallery-thumb" style={{ background: gradient(`${bonus.id}-${i}`) }} />
+              ))}
+            </div>
+          )}
+
+          <div className="card card-pad" style={{ marginBottom: 16 }}>
+            <div className="card-title" style={{ marginBottom: 8 }}>O bonusie</div>
+            <p className="muted" style={{ lineHeight: 1.65, margin: 0 }}>
+              {bonus.description || 'Brak opisu bonusu.'}
+            </p>
+          </div>
+
+          <div className="card card-pad">
+            <div className="card-title" style={{ marginBottom: 6 }}>Opłaty i warunki</div>
+            <div className="fee-row"><span className="muted">Cena bonusu</span><span className="v dy-num">{jr(bonus.entryFee)}</span></div>
+            <div className="fee-row"><span className="muted">Czas trwania</span><span className="v dy-num">{bonus.gracePeriod} mies.</span></div>
+            <div className="fee-row"><span className="muted">Min. saldo do wglądu</span><span className="v dy-num">{jr(bonus.minimalJrForView)}</span></div>
           </div>
         </div>
-        <div className="card pad">
-          {existing ? (
-            <>
-              <h3>Posiadasz ten bonus</h3>
-              <div className="muted">Zakupiono {new Date(existing.boughtDate).toLocaleDateString('pl-PL')}</div>
-              <button className="btn danger" style={{ marginTop: 12 }} onClick={cancel}>Zrezygnuj z bonusu</button>
-            </>
-          ) : !draft ? (
-            <>
-              <h3>Kup ten bonus</h3>
-              <button className="btn primary" onClick={start}>Rozpocznij zakup</button>
-            </>
-          ) : (
-            <>
-              <h3>Podsumowanie</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Wymagane teraz</span><b>{jr(summary?.required)}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Dostępne</span><span>{jr(summary?.available)}</span></div>
-              {summary && !summary.canAfford && <div className="alert warn" style={{ marginTop: 10 }}>Brakuje {jr(summary.missing)}. <Link to="/wallet/state">Kup JR</Link></div>}
-              <button className="btn primary" style={{ width: '100%', marginTop: 10 }} disabled={!summary?.canAfford || busy} onClick={finish}>Potwierdź zakup</button>
-            </>
-          )}
+
+        <div className="sticky-col">
+          <div className="card card-pad">
+            {existing ? (
+              <>
+                <div className="badge badge-ok" style={{ marginBottom: 10 }}>Posiadasz ten bonus</div>
+                <div className="dy-h" style={{ fontSize: 20, marginBottom: 4 }}>{jr(bonus.entryFee)}</div>
+                <div className="muted" style={{ fontSize: 13, marginBottom: 14 }}>
+                  Zakupiono {new Date(existing.boughtDate).toLocaleDateString('pl-PL')}
+                </div>
+                <button className="btn btn-danger btn-block" onClick={cancel}>Zrezygnuj z bonusu</button>
+              </>
+            ) : !draft ? (
+              <>
+                <div className="label">Cena bonusu</div>
+                <div className="dy-h dy-num" style={{ fontSize: 30, margin: '4px 0 14px' }}>{jr(bonus.entryFee)}</div>
+                <button className="btn btn-primary btn-block" onClick={start}>
+                  <Gift size={16} /> Rozpocznij zakup
+                </button>
+                <div className="row muted" style={{ gap: 7, marginTop: 12, fontSize: 12.5 }}>
+                  <ShieldCheck size={15} /> Rozliczenie w pełni przejrzyste.
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="card-title" style={{ marginBottom: 12 }}>Podsumowanie</div>
+                <div className="fee-row"><span className="muted">Wymagane teraz</span><span className="v dy-num">{jr(summary?.required)}</span></div>
+                <div className="fee-row"><span className="muted">Dostępne środki</span><span className="v dy-num">{jr(summary?.available)}</span></div>
+                {summary && !summary.canAfford && (
+                  <ErrorAlert>Brakuje {jr(summary.missing)}. <Link to="/wallet/state" style={{ fontWeight: 700 }}>Kup JR</Link></ErrorAlert>
+                )}
+                <button className="btn btn-primary btn-block" style={{ marginTop: 10 }} disabled={!summary?.canAfford || busy} onClick={finish}>
+                  {busy ? 'Przetwarzanie…' : 'Potwierdź zakup'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../auth';
+import { useToast, Spinner, ErrorAlert } from '../ui';
+import { Download, Lock } from 'lucide-react';
 
 export default function Settings() {
   const { tab = 'data' } = useParams();
   return (
     <div>
-      <div className="page-head"><h1>Ustawienia</h1></div>
-      <div className="tabs">
-        <NavLink to="/settings/data" className={tab === 'data' ? 'active' : ''}>Moje dane</NavLink>
-        <NavLink to="/settings/agreements" className={tab === 'agreements' ? 'active' : ''}>Zgody</NavLink>
+      <div className="screen-head">
+        <h1 className="screen-title dy-h">Ustawienia</h1>
+        <p className="screen-sub">Zarządzaj danymi konta i zgodami prawnymi.</p>
+      </div>
+      <div className="tabs" style={{ marginBottom: 20 }}>
+        <Link to="/settings/data" className={`tab${tab === 'data' ? ' active' : ''}`}>Dane</Link>
+        <Link to="/settings/agreements" className={`tab${tab === 'agreements' ? ' active' : ''}`}>Zgody</Link>
       </div>
       {tab === 'agreements' ? <Agreements /> : <DataForm />}
     </div>
@@ -19,80 +24,97 @@ export default function Settings() {
 
 function DataForm() {
   const { refresh } = useAuth();
+  const toast = useToast();
   const [form, setForm] = useState<any>(null);
   const [pw, setPw] = useState({ oldPassword: '', password: '' });
-  const [msg, setMsg] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/profile/data').then((d) => setForm({ ...d.profile }));
   }, []);
-  if (!form) return <div className="spinner">Ładowanie…</div>;
+  if (!form) return <Spinner />;
 
   const set = (k: string, v: any) => setForm({ ...form, [k]: v });
   const save = async () => {
+    setError('');
     try {
       await api.post('/profile/data', form);
       await api.post('/profile/payment-data', { bankAccountNumber: form.bankAccountNumber });
-      setMsg('Zapisano.');
+      toast('Zapisano zmiany');
       refresh();
-    } catch (e: any) { setMsg(e.message); }
+    } catch (e: any) { setError(e.message); }
   };
   const changePw = async () => {
-    try { await api.post('/profile/password', pw); setMsg('Hasło zostało zmienione.'); setPw({ oldPassword: '', password: '' }); }
-    catch (e: any) { setMsg(e.message); }
+    setError('');
+    try {
+      await api.post('/profile/password', pw);
+      toast('Hasło zostało zmienione');
+      setPw({ oldPassword: '', password: '' });
+      setShowPw(false);
+    } catch (e: any) { setError(e.message); }
   };
 
   const isCompany = form.type === 2;
 
   return (
-    <div className="grid cols-2">
-      <div className="card pad">
-        <h3>Dane osobowe / firmowe</h3>
-        {msg && <div className="alert info">{msg}</div>}
-        <label className="field"><span>Typ konta</span>
-          <select value={form.type} onChange={(e) => set('type', Number(e.target.value))}>
-            <option value={1}>Osoba prywatna</option>
-            <option value={2}>Firma</option>
-          </select>
-        </label>
+    <div className="card card-pad" style={{ maxWidth: 820 }}>
+      {error && <ErrorAlert>{error}</ErrorAlert>}
+
+      <div className="seg" style={{ maxWidth: 380 }}>
+        <button className={!isCompany ? 'active' : ''} onClick={() => set('type', 1)}>Osoba prywatna</button>
+        <button className={isCompany ? 'active' : ''} onClick={() => set('type', 2)}>Firma</button>
+      </div>
+
+      <div className="grid-2">
         {isCompany ? (
           <>
             <Field label="Nazwa firmy" v={form.companyName} on={(v) => set('companyName', v)} />
-            <Field label="Numer podatkowy (NIP)" v={form.taxNumber} on={(v) => set('taxNumber', v)} />
+            <Field label="NIP" v={form.taxNumber} on={(v) => set('taxNumber', v)} />
           </>
         ) : (
           <>
-            <Field label="Imię" v={form.firstName} on={(v) => set('firstName', v)} />
-            <Field label="Nazwisko" v={form.lastName} on={(v) => set('lastName', v)} />
-            <Field label="Numer PESEL" v={form.personalNumber} on={(v) => set('personalNumber', v)} />
+            <Field label="Imię i nazwisko" v={[form.firstName, form.lastName].filter(Boolean).join(' ')} on={(v) => {
+              const [first, ...rest] = v.split(' ');
+              setForm({ ...form, firstName: first || '', lastName: rest.join(' ') });
+            }} />
+            <Field label="PESEL" v={form.personalNumber} on={(v) => set('personalNumber', v)} />
           </>
         )}
+        <Field label="E-mail" v={form.email} on={() => {}} disabled />
+        <Field label="Telefon" v={form.phone} on={(v) => set('phone', v)} />
         <Field label="Adres" v={form.address} on={(v) => set('address', v)} />
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="row" style={{ gap: 12, alignItems: 'flex-end' }}>
           <Field label="Kod pocztowy" v={form.postalCode} on={(v) => set('postalCode', v)} />
           <Field label="Miasto" v={form.city} on={(v) => set('city', v)} />
         </div>
-        <Field label="Telefon" v={form.phone} on={(v) => set('phone', v)} />
         <Field label="Numer konta bankowego" v={form.bankAccountNumber} on={(v) => set('bankAccountNumber', v)} />
-        <button className="btn primary" onClick={save}>Zapisz zmiany</button>
       </div>
 
-      <div>
-        <div className="card pad" style={{ marginBottom: 16 }}>
-          <h3>Zmiana hasła</h3>
-          <label className="field"><span>Obecne hasło</span>
-            <input type="password" value={pw.oldPassword} onChange={(e) => setPw({ ...pw, oldPassword: e.target.value })} />
-          </label>
-          <label className="field"><span>Nowe hasło</span>
-            <input type="password" value={pw.password} onChange={(e) => setPw({ ...pw, password: e.target.value })} />
-          </label>
-          <button className="btn" onClick={changePw}>Zaktualizuj hasło</button>
+      {showPw && (
+        <div className="card card-pad" style={{ background: 'var(--bg)', marginTop: 6, marginBottom: 18 }}>
+          <div className="card-title" style={{ marginBottom: 12 }}>Zmiana hasła</div>
+          <div className="grid-2">
+            <div className="field" style={{ margin: 0 }}>
+              <label className="label">Obecne hasło</label>
+              <input className="input" type="password" value={pw.oldPassword} onChange={(e) => setPw({ ...pw, oldPassword: e.target.value })} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label className="label">Nowe hasło</label>
+              <input className="input" type="password" value={pw.password} onChange={(e) => setPw({ ...pw, password: e.target.value })} />
+            </div>
+          </div>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }} onClick={changePw}>Zaktualizuj hasło</button>
         </div>
-        <div className="card pad">
-          <h3>Strefa niebezpieczna</h3>
-          <p className="muted">Usunięcie konta jest nieodwracalne i możliwe tylko przy braku aktywnych środków.</p>
-          <DeleteAccount />
-        </div>
+      )}
+
+      <div className="row wrap" style={{ gap: 10, marginTop: 8, paddingTop: 18, borderTop: '1px solid var(--line)' }}>
+        <button className="btn btn-primary" onClick={save}>Zapisz zmiany</button>
+        <button className="btn btn-outline" onClick={() => setShowPw((s) => !s)}>
+          <Lock size={16} /> Zmień hasło
+        </button>
+        <div className="grow" />
+        <DeleteAccount />
       </div>
     </div>
   );
@@ -110,39 +132,58 @@ function DeleteAccount() {
       nav('/login');
     } catch (e: any) { alert(e.message); }
   };
-  return <button className="btn danger" onClick={del}>Usuń konto</button>;
+  return <button className="btn btn-danger" onClick={del}>Usuń konto</button>;
 }
 
 function Agreements() {
+  const toast = useToast();
   const [data, setData] = useState<any>(null);
   useEffect(() => { api.get('/profile/rules').then(setData); }, []);
-  if (!data) return <div className="spinner">Ładowanie…</div>;
-  const accept = async () => { await api.post('/profile/rules', {}); setData({ ...data, accepted: [...data.accepted, 2] }); alert('Zgody zaakceptowane.'); };
+  if (!data) return <Spinner />;
+  const accept = async () => {
+    await api.post('/profile/rules', {});
+    setData({ ...data, accepted: [...data.accepted, 2] });
+    toast('Zgody zaakceptowane');
+  };
   return (
-    <div className="card pad">
-      <h3>Zgody prawne (RODO / GDPR)</h3>
-      <table>
-        <thead><tr><th>Zgoda</th><th>Wymagana</th><th>Status</th></tr></thead>
-        <tbody>
-          {data.rules.map((r: any) => (
-            <tr key={r.id}>
-              <td>{r.name}<div className="muted" style={{ fontSize: 12 }}>{r.content}</div></td>
-              <td>{r.required ? <span className="badge red">wymagana</span> : <span className="badge gray">opcjonalna</span>}</td>
-              <td><span className="badge green">zaakceptowana</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <button className="btn" style={{ marginTop: 12 }} onClick={accept}>Zaakceptuj ponownie wszystkie zgody</button>
+    <div className="card">
+      <div className="card-head">
+        <span className="card-title">Zgody prawne (RODO / GDPR)</span>
+        <button className="btn btn-outline btn-sm" onClick={accept}>Zaakceptuj ponownie</button>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="dy-table">
+          <thead>
+            <tr><th>Dokument</th><th>Wymagana</th><th>Status</th><th>Akcja</th></tr>
+          </thead>
+          <tbody>
+            {data.rules.map((r: any) => (
+              <tr key={r.id}>
+                <td>
+                  <div style={{ fontWeight: 700 }}>{r.name}</div>
+                  {r.content && <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{r.content}</div>}
+                </td>
+                <td>{r.required ? 'Tak' : 'Nie'}</td>
+                <td><span className="badge badge-ok">Zaakceptowana</span></td>
+                <td>
+                  <a className="row" style={{ gap: 5, color: 'var(--brand-600)', fontWeight: 700, cursor: 'pointer' }} onClick={() => toast('Pobieranie dokumentu…')}>
+                    <Download size={15} /> PDF
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
-function Field({ label, v, on }: { label: string; v: any; on: (v: string) => void }) {
+function Field({ label, v, on, disabled }: { label: string; v: any; on: (v: string) => void; disabled?: boolean }) {
   return (
-    <label className="field" style={{ flex: 1 }}>
-      <span>{label}</span>
-      <input value={v || ''} onChange={(e) => on(e.target.value)} />
-    </label>
+    <div className="field" style={{ margin: 0, flex: 1 }}>
+      <label className="label">{label}</label>
+      <input className="input" value={v || ''} disabled={disabled} onChange={(e) => on(e.target.value)} />
+    </div>
   );
 }

@@ -77,7 +77,7 @@ export default function Login() {
             <label className="check"><input type="checkbox" defaultChecked /> Zapamiętaj mnie</label>
             <Link to="/register" style={{ color: 'var(--brand-600)', fontWeight: 600, fontSize: 13.5 }}>Nie pamiętasz hasła?</Link>
           </div>
-          <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={busy}>
+          <button type="submit" className="btn btn-primary btn-block" style={{ height: 50 }} disabled={busy}>
             {busy ? 'Logowanie…' : 'Zaloguj się'}
           </button>
           <p style={{ textAlign: 'center', color: 'var(--ink-2)', fontSize: 14, margin: '22px 0 0' }}>
