@@ -1,0 +1,36 @@
+{
+  "name": "divideyou-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DivideYou API — programs, JR wallet, purchases, partnership commissions",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node --import tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "prisma:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "db:reset": "prisma db push --force-reset --skip-generate",
+    "seed": "tsx prisma/seed.ts",
+    "setup": "prisma generate && prisma db push --force-reset --skip-generate && tsx prisma/seed.ts",
+    "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.2",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

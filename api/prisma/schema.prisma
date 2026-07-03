@@ -1,0 +1,403 @@
+// DivideYou data model. Money stored as integers in minor units (×100).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  type           Int      @default(1) // 1 CLIENT, 2 ADMIN, 99 DELETED
+  emailConfirmed Boolean  @default(false)
+  blockedStatus  Int      @default(0) // 0 UNBLOCKED,1 SUB_UNPAID,2 DEMO_EXPIRED,3 BY_ADMIN
+  onlyPay        Boolean  @default(false)
+  authTokenSeq   Int      @default(0)
+  lastLoginAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  client UserClient?
+  admin  UserAdmin?
+  tokens Token[]
+}
+
+model UserClient {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                 Int      @default(1) // 1 PERSONAL, 2 BUSINESS
+  firstName            String?
+  lastName             String?
+  companyName          String?
+  personalNumber       String?  // PESEL
+  taxNumber            String?  // NIP
+  address              String?
+  postalCode           String?
+  city                 String?
+  phone                String?
+  bankAccountNumber    String?
+
+  accessFeePaid        Boolean  @default(false)
+  accessPaidDate       DateTime?
+  demoExpired          Boolean  @default(false)
+  detailDataConfirmed  Boolean  @default(false)
+  anyProgramBought     Boolean  @default(false)
+
+  // referral / partnership
+  partnerNumber            String?  @unique
+  partnerOfId              String?
+  partnerOf                UserClient?  @relation("Downline", fields: [partnerOfId], references: [id])
+  partners                 UserClient[] @relation("Downline")
+  partnershipTermAccepted  Boolean  @default(false)
+  partnershipTermDate      DateTime?
+  partnershipRegisterIp    String?
+  customPartnershipCommission Boolean @default(false)
+  partnershipCommissionValue  Int    @default(0) // percent basis points? here plain percent
+
+  // denormalized helpers (recomputed)
+  paymentStatus  Int  @default(1) // 1 SAFE, 2 WARNING, 3 DANGER
+  jrActive       Int  @default(0)
+  jrNotActive    Int  @default(0)
+  programsCount  Int  @default(0)
+  programsVipCount Int @default(0)
+  bonusCount     Int  @default(0)
+  notificationCount Int @default(0)
+  notificationDate  DateTime?
+
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]  @relation("ClientTransactions")
+  commissions  Transaction[]  @relation("PartnerTransactions")
+  payments     Payment[]
+  purchases    Purchase[]
+  requests     ClientRequest[]
+  agreements   GdprAgreement[]
+  invitations  Invitation[]
+  observed     ObservedItem[]
+  thresholds   PartnershipCommissionThreshold[]
+}
+
+model UserAdmin {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  phone       String?
+  superAdmin  Boolean @default(false)
+  permissions String  @default("{}") // JSON: { KEY: level }
+  createdAt   DateTime @default(now())
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  type      Int      // 1 EMAIL_CONFIRM, 2 PASSWORD_RESET
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Catalog: programs, locations, attributes
+// ---------------------------------------------------------------------------
+
+model Program {
+  id               String   @id @default(cuid())
+  name             String
+  description      String   @default("")
+  marketingText    String   @default("")
+  profilePhoto     String?
+  gallery          String   @default("[]") // JSON string[]
+  vip              Boolean  @default(false)
+  recommended      Boolean  @default(false)
+  isBonus          Boolean  @default(false)
+  visible          Boolean  @default(true)
+  gracePeriod      Int      @default(12) // months
+  entryFee         Int      @default(0)
+  subscriptionPrice Int     @default(0)
+  amountBlocked    Int      @default(0)
+  minimalJrForView Int      @default(0)
+  maxPurchases     Int      @default(0) // for bonuses
+  createdAt        DateTime @default(now())
+
+  locations  Location[]
+  attributes ProgramAttribute[]
+  purchases  Purchase[]
+  observed   ObservedItem[]
+  electronicRules ElectronicRule[]
+}
+
+model Location {
+  id               String   @id @default(cuid())
+  programId        String
+  program          Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name             String
+  description      String   @default("")
+  address          String?
+  city             String?
+  postalCode       String?
+  latitude         Float?
+  longitude        Float?
+  visible          Boolean  @default(true)
+  purchaseDuration Int      @default(12) // months
+  entryFee         Int      @default(0)
+  subscriptionPrice Int     @default(0)
+  amountBlocked    Int      @default(0)
+  maxPurchases     Int      @default(0)
+  gallery          String   @default("[]")
+  createdAt        DateTime @default(now())
+
+  attributes ProgramAttribute[]
+  purchases  Purchase[]
+  observed   ObservedItem[]
+  electronicRules ElectronicRule[]
+}
+
+model ProgramAttribute {
+  id               String  @id @default(cuid())
+  programId        String?
+  program          Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+  locationId       String?
+  location         Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  parentId         String?
+  parent           ProgramAttribute?  @relation("AttrTree", fields: [parentId], references: [id])
+  children         ProgramAttribute[] @relation("AttrTree")
+  name             String
+  description      String  @default("")
+  type             Int     @default(1) // 1 LABEL, 2 CHECKBOX, 3 NUMERICAL
+  isFinal          Boolean @default(false)
+  isMultiselect    Boolean @default(false)
+  isRequired       Boolean @default(false)
+  startFee         Int     @default(0)
+  subscriptionPrice Int    @default(0)
+  amountBlocked    Int     @default(0)
+  maxCount         Int     @default(1)
+  maxPurchases     Int     @default(0)
+  unit             String?
+  sortOrder        Int     @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// Purchases
+// ---------------------------------------------------------------------------
+
+model Purchase {
+  id              String    @id @default(cuid())
+  userClientId    String
+  userClient      UserClient @relation(fields: [userClientId], references: [id], onDelete: Cascade)
+  programId       String?
+  program         Program?  @relation(fields: [programId], references: [id])
+  locationId      String?
+  location        Location? @relation(fields: [locationId], references: [id])
+  isBonus         Boolean   @default(false)
+  price           Int       @default(0)
+  subscriptionFee Int       @default(0)
+  amountBlocked   Int       @default(0)
+  active          Boolean   @default(false)
+  finished        Boolean   @default(false)
+  canceled        Boolean   @default(false)
+  canceledByAdmin Boolean   @default(false)
+  activationDate  DateTime?
+  endDate         DateTime?
+  boughtDate      DateTime?
+  nextPaymentDate DateTime?
+  createdAt       DateTime  @default(now())
+
+  attributes   PurchaseAttribute[]
+  transactions Transaction[]
+}
+
+model PurchaseAttribute {
+  id                 String   @id @default(cuid())
+  purchaseId         String
+  purchase           Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  programAttributeId String
+  name               String
+  count              Int      @default(1)
+  startFee           Int      @default(0)
+  subscriptionPrice  Int      @default(0)
+  amountBlocked      Int      @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// Money: transactions (JR ledger) + payments (PLN) + requests
+// ---------------------------------------------------------------------------
+
+model Transaction {
+  id                     Int      @id @default(autoincrement()) // also the monotonic ledger sequence
+  clientId               String
+  client                 UserClient @relation("ClientTransactions", fields: [clientId], references: [id], onDelete: Cascade)
+  type                   Int
+  value                  Int      @default(0)   // JR minor units
+  plnEquivalent          Int      @default(0)   // PLN minor units
+  cancelled              Boolean  @default(false)
+  subscriptionMonths     Int      @default(0)
+  jrProtectionEndAt      DateTime?
+  timestamp              DateTime @default(now())
+
+  paymentId              String?  @unique
+  payment                Payment? @relation(fields: [paymentId], references: [id])
+  purchaseId             String?
+  purchase               Purchase? @relation(fields: [purchaseId], references: [id])
+  partnerId              String?
+  partner                UserClient? @relation("PartnerTransactions", fields: [partnerId], references: [id])
+  clientRequestId        String?  @unique
+  clientRequest          ClientRequest? @relation(fields: [clientRequestId], references: [id])
+  relatedTransactionId   Int?
+  description            String?
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      UserClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type        Int      // 1 JR_PURCHASE,2 ACCESS_FEE,10 JR_PAYOUT,11 COMMISSION_PAYOUT,12 ACCESS_PAYOUT
+  status      Int      @default(1) // 0 INIT,1 PENDING,2 ACCEPTED,3 REJECTED
+  value       Int      @default(0) // PLN minor units
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transaction Transaction?
+  clientRequest ClientRequest?
+}
+
+model ClientRequest {
+  id            String   @id @default(cuid())
+  clientId      String
+  client        UserClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type          Int      // 1 CASH, 2 JR, 3 ACCESS_FEE
+  status        Int      @default(1) // 1 PENDING, 2 ACCEPTED, 3 REJECTED
+  value         Int      @default(0) // JR minor units
+  plnEquivalent Int      @default(0)
+  description   String   @default("")
+  paymentId     String?  @unique
+  payment       Payment? @relation(fields: [paymentId], references: [id])
+  createdAt     DateTime @default(now())
+
+  transaction   Transaction?
+}
+
+model PartnershipCommissionThreshold {
+  id        String  @id @default(cuid())
+  clientId  String?
+  client    UserClient? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  lowLimit  Int     @default(0)
+  highLimit Int     @default(0)
+  value     Int     @default(0) // percent
+  global    Boolean @default(false)
+}
+
+// ---------------------------------------------------------------------------
+// Content / config / consent
+// ---------------------------------------------------------------------------
+
+model Settings {
+  id                    String   @id @default(cuid())
+  demoAccessDays        Int      @default(14)
+  accessPrice           Int      @default(9900)   // PLN minor units
+  jrExchangeRate        Int      @default(100)    // PLN minor units per 1 JR (=1.00 PLN)
+  jrWithdrawalPeriodDays Int     @default(30)
+  jrProtectionPeriodDays Int     @default(0)
+  minJrForVip           Int      @default(0)
+  minJrForBonus         Int      @default(0)
+  partnerTerm           String   @default("")
+  createdAt             DateTime @default(now())
+}
+
+model RegistrationRule {
+  id        String  @id @default(cuid())
+  name      String
+  content   String  @default("")
+  required  Boolean @default(true)
+  sortOrder Int     @default(0)
+  createdAt DateTime @default(now())
+}
+
+model ElectronicRule {
+  id         String  @id @default(cuid())
+  name       String
+  content    String  @default("")
+  required   Boolean @default(true)
+  programId  String?
+  program    Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model GdprAgreement {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    UserClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type      Int      // 1 REGISTRATION,2 ACCESS,3 EDIT_DATA,4 PARTNERSHIP
+  content   String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model News {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  content   String   @default("")
+  photo     String?
+  createdAt DateTime @default(now())
+}
+
+model Faq {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String  @default("")
+  sortOrder Int     @default(0)
+  onDashboard Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+
+model FileItem {
+  id               String   @id @default(cuid())
+  name             String
+  isDirectory      Boolean  @default(false)
+  parentId         String?
+  parent           FileItem?  @relation("FileTree", fields: [parentId], references: [id])
+  children         FileItem[] @relation("FileTree")
+  path             String?
+  mimeType         String?
+  size             Int      @default(0)
+  marketingMaterial Boolean @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model ObservedItem {
+  id               String   @id @default(cuid())
+  clientId         String
+  client           UserClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  programId        String?
+  program          Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+  locationId       String?
+  location         Location? @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  notifyOnAvailable Boolean @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model Invitation {
+  id         String   @id @default(cuid())
+  clientId   String
+  client     UserClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  email      String
+  registered Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  createdAt DateTime @default(now())
+}
