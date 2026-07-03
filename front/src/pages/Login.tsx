@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../auth';
 
 export default function Login() {
   const { login } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState('jan@divideyou.test');
+  const [email, setEmail] = useState('anna@divideyou.test');
   const [password, setPassword] = useState('Password1');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -25,32 +26,64 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-wrap">
-      <div className="auth-card">
-        <div className="brand">Divide<span>You</span></div>
-        <div className="tag">Zaloguj się do swojego konta</div>
-        <div className="card pad">
-          <form onSubmit={submit}>
-            {error && <div className="alert error">{error}</div>}
-            <label className="field">
-              <span>E-mail</span>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
-            </label>
-            <label className="field">
-              <span>Hasło</span>
-              <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
-            </label>
-            <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
-              {busy ? 'Logowanie…' : 'Zaloguj się'}
-            </button>
-          </form>
-          <div style={{ marginTop: 16, textAlign: 'center' }} className="muted">
-            Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+    <div className="auth-split">
+      <div className="auth-left">
+        <div className="auth-brand">
+          <img src="/logo-divideyou.png" alt="" />
+          <span>DivideYou</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div className="auth-eyebrow">Portfel · Programy · Prowizje</div>
+          <h1 className="auth-h1">Oszczędzaj, korzystaj z programów i zarabiaj na poleceniach.</h1>
+          <p className="auth-lead">
+            Platforma ekonomii współdzielenia. Doładuj portfel w JR, wybierz program w swojej okolicy
+            i rozliczaj się w pełni przejrzyście.
+          </p>
+        </div>
+        <div className="auth-stats">
+          <div className="auth-stat">
+            <div className="n dy-num">1 JR = 1,00 zł</div>
+            <div className="l">kurs stały</div>
           </div>
-          <div style={{ marginTop: 18, fontSize: 12 }} className="muted">
-            Demo: jan@divideyou.test / Password1 · anna@divideyou.test (partner)
+          <div className="auth-divider" />
+          <div className="auth-stat">
+            <div className="n dy-num">14 dni</div>
+            <div className="l">dostęp demo</div>
           </div>
         </div>
+        <div className="auth-foot"><ShieldCheck size={16} /> Twoje dane chronione zgodnie z RODO.</div>
+      </div>
+
+      <div className="auth-right">
+        <form className="auth-form" onSubmit={submit}>
+          <h2>Zaloguj się</h2>
+          <p className="sub">Witaj ponownie. Wprowadź swoje dane.</p>
+          {error && <div className="err-alert">{error}</div>}
+          <div className="field">
+            <label className="label">Adres e-mail</label>
+            <div className="input-icon">
+              <Mail size={17} />
+              <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            </div>
+          </div>
+          <div className="field">
+            <label className="label">Hasło</label>
+            <div className="input-icon">
+              <Lock size={17} />
+              <input className="input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+            </div>
+          </div>
+          <div className="between" style={{ marginBottom: 22 }}>
+            <label className="check"><input type="checkbox" defaultChecked /> Zapamiętaj mnie</label>
+            <Link to="/register" style={{ color: 'var(--brand-600)', fontWeight: 600, fontSize: 13.5 }}>Nie pamiętasz hasła?</Link>
+          </div>
+          <button className="btn btn-primary btn-block" style={{ height: 50 }} disabled={busy}>
+            {busy ? 'Logowanie…' : 'Zaloguj się'}
+          </button>
+          <p style={{ textAlign: 'center', color: 'var(--ink-2)', fontSize: 14, margin: '22px 0 0' }}>
+            Nie masz konta? <Link to="/register" style={{ color: 'var(--brand-600)', fontWeight: 700 }}>Załóż konto demo</Link>
+          </p>
+        </form>
       </div>
     </div>
   );

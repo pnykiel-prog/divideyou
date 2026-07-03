@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './styles.css';
 import { AuthProvider, useAuth } from './auth';
+import { ThemeProvider } from './theme';
+import { ToastProvider, Spinner } from './ui';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -20,7 +22,7 @@ import Settings from './pages/Settings';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="spinner">Ładowanie…</div>;
+  if (loading) return <Spinner />;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
@@ -65,9 +67,13 @@ function Root() {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <Root />
-      </AuthProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Root />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
