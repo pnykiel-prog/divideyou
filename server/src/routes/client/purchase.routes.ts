@@ -35,12 +35,12 @@ async function findOrCreateDraft(clientId: string, opts: { locationId?: string; 
 // POST /purchase/ — set or remove an attribute on the draft
 router.post('/', wrap(async (req, res) => {
   const { locationId, programId, programAttributeId, count } = req.body;
-  if (!locationId && !programId) throw badRequest('locationId or programId required');
+  if (!locationId && !programId) throw badRequest('Wymagane locationId lub programId');
   const draft = await findOrCreateDraft(cid(req), { locationId, programId });
 
   if (programAttributeId) {
     const attr = await prisma.programAttribute.findUnique({ where: { id: programAttributeId } });
-    if (!attr) throw notFound('Attribute not found');
+    if (!attr) throw notFound('Nie znaleziono atrybutu');
     const n = Number(count) || 0;
     const existing = await prisma.purchaseAttribute.findFirst({
       where: { purchaseId: draft.id, programAttributeId },
@@ -104,8 +104,8 @@ router.post('/finish', wrap(async (req, res) => {
     where: { id, userClientId: cid(req) },
     include: { program: true, location: true, attributes: true },
   });
-  if (!p) throw notFound('Purchase not found');
-  if (p.active) throw badRequest('Already purchased');
+  if (!p) throw notFound('Nie znaleziono zakupu');
+  if (p.active) throw badRequest('Zakup już dokonany');
 
   await recomputePurchaseTotals(p.id);
   const fresh = (await prisma.purchase.findUnique({ where: { id: p.id }, include: { location: true, program: true } }))!;
@@ -113,7 +113,7 @@ router.post('/finish', wrap(async (req, res) => {
   const w = await calculateWallet(cid(req));
   const required = fresh.price + fresh.amountBlocked;
   if (w.active + w.pending < required) {
-    throw badRequest('Insufficient funds. You need ' + (required - (w.active + w.pending)) / 100 + ' more JR');
+    throw badRequest('Niewystarczające środki. Potrzebujesz jeszcze ' + (required - (w.active + w.pending)) / 100 + ' JR');
   }
 
   const now = new Date();
@@ -134,7 +134,7 @@ router.post('/finish', wrap(async (req, res) => {
     type: fresh.isBonus ? TransactionType.BONUS_PURCHASE : TransactionType.PROGRAM_PURCHASE,
     value: fresh.price,
     purchaseId: p.id,
-    description: fresh.isBonus ? 'Bonus purchase' : 'Program purchase',
+    description: fresh.isBonus ? 'Zakup bonusu' : 'Zakup programu',
   });
   if (fresh.amountBlocked > 0) {
     await logTransaction({
@@ -142,7 +142,7 @@ router.post('/finish', wrap(async (req, res) => {
       type: TransactionType.FROZEN_RESOURCES,
       value: fresh.amountBlocked,
       purchaseId: p.id,
-      description: 'Frozen collateral',
+      description: 'Zabezpieczenie (zamrożone)',
     });
   }
 
@@ -155,17 +155,17 @@ router.post('/finish', wrap(async (req, res) => {
 router.post('/:id/pay-subscription', wrap(async (req, res) => {
   const months = Math.max(1, Number(req.body.months) || 1);
   const p = await getPurchase(req);
-  if (!p.active) throw badRequest('Purchase not active');
+  if (!p.active) throw badRequest('Zakup nieaktywny');
   const total = p.subscriptionFee * months;
   const w = await calculateWallet(cid(req));
-  if (w.active < total) throw badRequest('Insufficient funds for subscription');
+  if (w.active < total) throw badRequest('Niewystarczające środki na abonament');
   await logTransaction({
     clientId: cid(req),
     type: TransactionType.SUBSCRIPTION_FEE,
     value: total,
     purchaseId: p.id,
     subscriptionMonths: months,
-    description: `Subscription (${months} month${months > 1 ? 's' : ''})`,
+    description: `Abonament (${months} mies.)`,
   });
   await prisma.purchase.update({
     where: { id: p.id },
@@ -181,18 +181,18 @@ router.all('/:id/cancel-bonus', wrap((req, res) => cancel(req, res)));
 
 async function cancel(req: any, res: any) {
   const p = await getPurchase(req);
-  if (!p.active) throw badRequest('Purchase not active');
+  if (!p.active) throw badRequest('Zakup nieaktywny');
   // Grace period (months) after which cancellation is allowed.
   const graceMonths = p.isBonus ? p.program!.gracePeriod : p.location!.program.gracePeriod;
   if (p.activationDate && monthsBetween(p.activationDate, new Date()) < graceMonths) {
-    throw badRequest('Cannot cancel before the grace period ends');
+    throw badRequest('Nie można anulować przed zakończeniem okresu karencji');
   }
   await logTransaction({
     clientId: cid(req),
     type: TransactionType.CANCELLATION,
     value: 0,
     purchaseId: p.id,
-    description: 'Purchase cancellation',
+    description: 'Anulowanie zakupu',
   });
   await prisma.purchase.update({
     where: { id: p.id },
@@ -211,7 +211,7 @@ async function getPurchase(req: any) {
       attributes: true,
     },
   });
-  if (!p) throw notFound('Purchase not found');
+  if (!p) throw notFound('Nie znaleziono zakupu');
   return p;
 }
 

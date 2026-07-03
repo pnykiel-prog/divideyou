@@ -42,10 +42,10 @@ export default function Users() {
   return (
     <div>
       <div className="page-head">
-        <h1>Users</h1>
+        <h1>Użytkownicy</h1>
         <form className="btn-row" onSubmit={doSearch}>
           <input
-            placeholder="Search name / email…"
+            placeholder="Szukaj imienia / e-maila…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{ width: 240 }}
@@ -58,12 +58,12 @@ export default function Users() {
             }}
             style={{ width: 150 }}
           >
-            <option value="">All types</option>
-            <option value="1">Private</option>
-            <option value="2">Company</option>
+            <option value="">Wszystkie typy</option>
+            <option value="1">Klient</option>
+            <option value="2">Firma</option>
           </select>
           <button className="btn primary" type="submit">
-            Search
+            Szukaj
           </button>
         </form>
       </div>
@@ -74,17 +74,17 @@ export default function Users() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No users found.</Empty>
+          <Empty>Brak użytkowników.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Name / Company</th>
-                <th>Email</th>
-                <th>Type</th>
-                <th>JR active</th>
-                <th>Payment</th>
-                <th>Programs</th>
+                <th>Nazwa / Firma</th>
+                <th>E-mail</th>
+                <th>Typ</th>
+                <th>Aktywne JR</th>
+                <th>Płatność</th>
+                <th>Programy</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -105,7 +105,7 @@ export default function Users() {
                   <td>{u.email}</td>
                   <td>
                     <span className={`badge ${u.type === 2 ? 'blue' : 'gray'}`}>
-                      {u.type === 2 ? 'Company' : 'Private'}
+                      {u.type === 2 ? 'Firma' : 'Klient'}
                     </span>
                   </td>
                   <td>{jr(u.jrActive ?? u.activeJr ?? u.wallet?.active)}</td>
@@ -115,9 +115,9 @@ export default function Users() {
                   <td>{u.programsCount ?? u.programs ?? 0}</td>
                   <td>
                     {u.blockedStatus === 3 ? (
-                      <span className="badge red">Blocked</span>
+                      <span className="badge red">Zablokowany</span>
                     ) : (
-                      <span className="badge green">Active</span>
+                      <span className="badge green">Aktywne</span>
                     )}
                   </td>
                 </tr>

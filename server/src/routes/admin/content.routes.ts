@@ -22,11 +22,11 @@ router.get('/news', requireAdmin('NEWS'), wrap(async (req, res) => {
 }));
 router.get('/news/:id', requireAdmin('NEWS'), wrap(async (req, res) => {
   const n = await prisma.news.findUnique({ where: { id: req.params.id } });
-  if (!n) throw notFound('News not found');
+  if (!n) throw notFound('Nie znaleziono aktualności');
   res.json(newsDto(n));
 }));
 router.post('/news', requireAdmin('NEWS', 2), wrap(async (req, res) => {
-  if (!req.body.title) throw badRequest('Title required');
+  if (!req.body.title) throw badRequest('Tytuł jest wymagany');
   const n = await prisma.news.create({
     data: { title: req.body.title, content: req.body.content ?? '', photo: req.body.photo ?? null, slug: slugify(req.body.title) },
   });
@@ -55,7 +55,7 @@ router.get('/faq', requireAdmin('FAQ'), wrap(async (req, res) => {
 }));
 router.get('/faq/:id', requireAdmin('FAQ'), wrap(async (req, res) => {
   const f = await prisma.faq.findUnique({ where: { id: req.params.id } });
-  if (!f) throw notFound('FAQ not found');
+  if (!f) throw notFound('Nie znaleziono FAQ');
   res.json(faqDto(f));
 }));
 router.post('/faq', requireAdmin('FAQ', 2), wrap(async (req, res) => {

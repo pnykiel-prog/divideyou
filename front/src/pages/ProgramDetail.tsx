@@ -13,40 +13,40 @@ export default function ProgramDetail() {
     api.get(`/programs/${id}/locations`).then(setLocations).catch(() => {});
   }, [id]);
 
-  if (!program) return <div className="spinner">Loading…</div>;
+  if (!program) return <div className="spinner">Ładowanie…</div>;
   const filtered = locations.filter((l) => !maxPrice || l.entryFee <= Number(maxPrice));
 
   return (
     <div>
-      <div style={{ marginBottom: 12 }}><Link to="/programs">← Back to programs</Link></div>
+      <div style={{ marginBottom: 12 }}><Link to="/programs">← Powrót do programów</Link></div>
       <div className="card pad" style={{ marginBottom: 20 }}>
         <div className="btn-row" style={{ marginBottom: 8 }}>
           {program.vip && <span className="badge amber">VIP</span>}
-          {program.recommended && <span className="badge blue">Recommended</span>}
+          {program.recommended && <span className="badge blue">Polecane</span>}
         </div>
         <h1>{program.name}</h1>
         <p className="muted">{program.description}</p>
         <div className="grid cols-4" style={{ marginTop: 10 }}>
-          <Info label="Entry fee" value={jr(program.entryFee)} />
-          <Info label="Subscription" value={`${jr(program.subscriptionPrice)}/mo`} />
-          <Info label="Collateral" value={jr(program.amountBlocked)} />
-          <Info label="Contract" value={`${program.gracePeriod} mo`} />
+          <Info label="Opłata wstępna" value={jr(program.entryFee)} />
+          <Info label="Abonament" value={`${jr(program.subscriptionPrice)}/mies.`} />
+          <Info label="Zabezpieczenie" value={jr(program.amountBlocked)} />
+          <Info label="Okres umowy" value={`${program.gracePeriod} mies.`} />
         </div>
       </div>
 
       <div className="page-head">
-        <h2>Locations ({filtered.length})</h2>
-        <input placeholder="Max entry fee (JR)" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} style={{ maxWidth: 200 }} />
+        <h2>Lokalizacje ({filtered.length})</h2>
+        <input placeholder="Maks. opłata wstępna (JR)" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} style={{ maxWidth: 200 }} />
       </div>
-      {filtered.length === 0 && <div className="empty">No locations available.</div>}
+      {filtered.length === 0 && <div className="empty">Brak dostępnych lokalizacji.</div>}
       <div className="grid cols-2">
         {filtered.map((l) => (
           <Link key={l.id} to={`/location/${l.id}`} className="card pad">
             <h3>{l.name}</h3>
             <div className="muted" style={{ fontSize: 13 }}>{l.address}, {l.city}</div>
             <div className="btn-row" style={{ marginTop: 10 }}>
-              <span className="badge gray">Entry {jr(l.entryFee)}</span>
-              <span className="badge gray">{jr(l.subscriptionPrice)}/mo</span>
+              <span className="badge gray">Wstępna {jr(l.entryFee)}</span>
+              <span className="badge gray">{jr(l.subscriptionPrice)}/mies.</span>
             </div>
           </Link>
         ))}

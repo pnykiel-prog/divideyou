@@ -67,7 +67,7 @@ router.get('/news', client, wrap(async (req, res) => {
 }));
 router.get('/news/:slug', client, wrap(async (req, res) => {
   const n = await prisma.news.findUnique({ where: { slug: req.params.slug } });
-  if (!n) throw notFound('News not found');
+  if (!n) throw notFound('Nie znaleziono aktualności');
   res.json(newsDto(n));
 }));
 
@@ -82,7 +82,7 @@ router.get('/faq/dashboard', client, wrap(async (_req, res) => {
 }));
 router.get('/faq/:id', client, wrap(async (req, res) => {
   const f = await prisma.faq.findUnique({ where: { id: req.params.id } });
-  if (!f) throw notFound('FAQ not found');
+  if (!f) throw notFound('Nie znaleziono FAQ');
   res.json(faqDto(f));
 }));
 
@@ -119,8 +119,8 @@ router.get('/partnership', partnerClient, wrap(async (req, res) => {
 
 router.post('/partnership/become', partnerClient, wrap(async (req, res) => {
   const c = req.auth.client;
-  if (c.partnershipTermAccepted) throw badRequest('Already a partner');
-  if (!c.detailDataConfirmed) throw badRequest('Complete your profile data before becoming a partner');
+  if (c.partnershipTermAccepted) throw badRequest('Jesteś już partnerem');
+  if (!c.detailDataConfirmed) throw badRequest('Uzupełnij dane profilu przed zostaniem partnerem');
   let partnerNumber = c.partnerNumber;
   if (!partnerNumber) {
     for (let i = 0; i < 5; i++) {
@@ -139,7 +139,7 @@ router.post('/partnership/become', partnerClient, wrap(async (req, res) => {
     },
   });
   await prisma.gdprAgreement.create({
-    data: { clientId: cid(req), type: GdprType.PARTNERSHIP, content: 'Partnership terms accepted' },
+    data: { clientId: cid(req), type: GdprType.PARTNERSHIP, content: 'Zaakceptowano regulamin partnerski' },
   });
   res.json({ ok: true, partnerNumber });
 }));
@@ -154,7 +154,7 @@ router.get('/partnership/resignation', requireClient('ROLE_CLIENT_PARTNER'), wra
 
 router.post('/partnership/invite', requireClient('ROLE_CLIENT_PARTNER'), wrap(async (req, res) => {
   const email = String(req.body.email || '').toLowerCase();
-  if (!email) throw badRequest('Email required');
+  if (!email) throw badRequest('E-mail jest wymagany');
   await prisma.invitation.create({ data: { clientId: cid(req), email } });
   res.json({ ok: true });
 }));
@@ -168,7 +168,7 @@ router.get('/partnership/:partnerId/history', requireClient('ROLE_CLIENT_PARTNER
   const partner = await prisma.userClient.findFirst({
     where: { id: req.params.partnerId, partnerOfId: cid(req) },
   });
-  if (!partner) throw notFound('Partner not found');
+  if (!partner) throw notFound('Nie znaleziono partnera');
   const txs = await prisma.transaction.findMany({
     where: { clientId: partner.id, type: { in: [10, 11] } },
     orderBy: { timestamp: 'desc' },

@@ -25,10 +25,10 @@ router.post(
   '/register',
   wrap(async (req, res) => {
     const { email, password, name, agreement, partnerNumber } = req.body;
-    if (!email || !password) throw badRequest('Email and password are required');
-    if (!agreement) throw badRequest('You must accept the registration terms');
+    if (!email || !password) throw badRequest('E-mail i hasło są wymagane');
+    if (!agreement) throw badRequest('Musisz zaakceptować regulamin rejestracji');
     const existing = await prisma.user.findUnique({ where: { email: String(email).toLowerCase() } });
-    if (existing) throw badRequest('Email already registered');
+    if (existing) throw badRequest('E-mail jest już zarejestrowany');
 
     let partnerOfId: string | null = null;
     if (partnerNumber) {
@@ -53,7 +53,7 @@ router.post(
     });
 
     await prisma.gdprAgreement.create({
-      data: { clientId: user.client!.id, type: GdprType.REGISTRATION, content: 'Registration terms accepted' },
+      data: { clientId: user.client!.id, type: GdprType.REGISTRATION, content: 'Zaakceptowano regulamin rejestracji' },
     });
 
     if (partnerOfId) {
@@ -141,16 +141,16 @@ function clientPayload(user: any) {
 
 async function authenticate(body: any, type: number) {
   const { email, password } = body;
-  if (!email || !password) throw badRequest('Email and password required');
+  if (!email || !password) throw badRequest('E-mail i hasło są wymagane');
   const user = await prisma.user.findUnique({
     where: { email: String(email).toLowerCase() },
     include: { client: true, admin: true },
   });
-  if (!user || user.type !== type) throw unauthorized('Invalid credentials');
-  if (!(await verifyPassword(password, user.password))) throw unauthorized('Invalid credentials');
+  if (!user || user.type !== type) throw unauthorized('Nieprawidłowe dane logowania');
+  if (!(await verifyPassword(password, user.password))) throw unauthorized('Nieprawidłowe dane logowania');
   if (type === UserType.CLIENT) {
-    if (!user.emailConfirmed) throw unauthorized('Email not confirmed');
-    if (user.blockedStatus === BlockedStatus.BY_ADMIN) throw unauthorized('Account blocked');
+    if (!user.emailConfirmed) throw unauthorized('E-mail nie został potwierdzony');
+    if (user.blockedStatus === BlockedStatus.BY_ADMIN) throw unauthorized('Konto zablokowane');
   }
   return user;
 }
@@ -173,9 +173,9 @@ async function recovery(req: any, res: any, type: number) {
 
 async function reset(req: any, res: any) {
   const { token, password } = req.body;
-  if (!token || !password) throw badRequest('Token and password required');
+  if (!token || !password) throw badRequest('Token i hasło są wymagane');
   const record = await prisma.token.findUnique({ where: { token: String(token) } });
-  if (!record || record.type !== TokenType.PASSWORD_RESET) throw badRequest('Invalid token');
+  if (!record || record.type !== TokenType.PASSWORD_RESET) throw badRequest('Nieprawidłowy token');
   await prisma.user.update({
     where: { id: record.userId },
     data: { password: await hashPassword(password), authTokenSeq: { increment: 1 } },

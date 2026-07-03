@@ -32,7 +32,7 @@ export function verifyToken(token: string): AuthPayload {
   try {
     return jwt.verify(token, SECRET, { issuer: ISSUER }) as AuthPayload;
   } catch {
-    throw unauthorized('Invalid token');
+    throw unauthorized('Nieprawidłowy token');
   }
 }
 

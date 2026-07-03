@@ -7,11 +7,11 @@ export default function Wallet() {
   const { tab = 'state' } = useParams();
   return (
     <div>
-      <div className="page-head"><h1>Wallet</h1></div>
+      <div className="page-head"><h1>Portfel</h1></div>
       <div className="tabs">
-        <NavLink to="/wallet/state" className={tab === 'state' ? 'active' : ''}>Balance</NavLink>
-        <NavLink to="/wallet/payments" className={tab === 'payments' ? 'active' : ''}>Transactions</NavLink>
-        <NavLink to="/wallet/returns" className={tab === 'returns' ? 'active' : ''}>Returns</NavLink>
+        <NavLink to="/wallet/state" className={tab === 'state' ? 'active' : ''}>Saldo</NavLink>
+        <NavLink to="/wallet/payments" className={tab === 'payments' ? 'active' : ''}>Transakcje</NavLink>
+        <NavLink to="/wallet/returns" className={tab === 'returns' ? 'active' : ''}>Zwroty</NavLink>
       </div>
       {tab === 'state' && <WalletState />}
       {tab === 'payments' && <Transactions />}
@@ -30,29 +30,29 @@ function WalletState() {
     api.get('/profile/data').then((d) => { setW(d.wallet); setProfile(d.profile); });
   };
   useEffect(load, []);
-  if (!w) return <div className="spinner">Loading…</div>;
+  if (!w) return <div className="spinner">Ładowanie…</div>;
 
   return (
     <div>
       <div className="grid cols-3" style={{ marginBottom: 16 }}>
-        <Tile label="Active money" value={jr(w.active)} sub={pln(w.activePln)} accent />
-        <Tile label="Pending money" value={jr(w.pending)} sub="awaiting acceptance" />
-        <Tile label="Spent (inactive)" value={jr(w.inactive)} sub="already used" />
-        <Tile label="Available to payout" value={jr(w.toPayout)} sub={pln(w.toPayoutPln)} />
-        <Tile label="Commission money" value={jr(w.toCommissionPayout)} sub={pln(w.toCommissionPayoutPln)} />
-        <Tile label="Blocked (collateral)" value={jr(w.blocked)} sub="frozen by purchases" />
+        <Tile label="Środki aktywne" value={jr(w.active)} sub={pln(w.activePln)} accent />
+        <Tile label="Środki oczekujące" value={jr(w.pending)} sub="oczekują na akceptację" />
+        <Tile label="Wydane (nieaktywne)" value={jr(w.inactive)} sub="już wykorzystane" />
+        <Tile label="Do wypłaty" value={jr(w.toPayout)} sub={pln(w.toPayoutPln)} />
+        <Tile label="Środki prowizyjne" value={jr(w.toCommissionPayout)} sub={pln(w.toCommissionPayoutPln)} />
+        <Tile label="Zablokowane (zabezpieczenie)" value={jr(w.blocked)} sub="zamrożone przez zakupy" />
       </div>
 
       {!profile?.accessFeePaid && (
-        <div className="alert warn">Your account is on demo access. Pay the one-time access fee to unlock all features.
-          <button className="btn sm" style={{ marginLeft: 10 }} onClick={() => payAccess(load)}>Pay access fee</button>
+        <div className="alert warn">Twoje konto korzysta z dostępu demo. Uiść jednorazową opłatę za dostęp, aby odblokować wszystkie funkcje.
+          <button className="btn sm" style={{ marginLeft: 10 }} onClick={() => payAccess(load)}>Opłać dostęp</button>
         </div>
       )}
 
       <div className="card pad">
         <div className="btn-row">
-          <button className="btn primary" onClick={() => setBuyOpen(true)}>Buy JR</button>
-          <button className="btn" onClick={() => setPayoutOpen(true)}>Payout JR</button>
+          <button className="btn primary" onClick={() => setBuyOpen(true)}>Kup JR</button>
+          <button className="btn" onClick={() => setPayoutOpen(true)}>Wypłać JR</button>
         </div>
       </div>
 
@@ -65,7 +65,7 @@ function WalletState() {
 async function payAccess(reload: () => void) {
   try {
     await api.post('/payments/access-fee', {});
-    alert('Access fee paid. Full access unlocked.');
+    alert('Opłata za dostęp uiszczona. Pełny dostęp odblokowany.');
     reload();
   } catch (e: any) {
     alert(e.message);
@@ -91,20 +91,20 @@ function BuyJrModal({ onClose }: { onClose: () => void }) {
     setBusy(true);
     try {
       await api.post('/payments/purchase-jr', { jr: Number(amount) });
-      alert('JR purchased and added to your wallet.');
+      alert('JR zakupione i dodane do Twojego portfela.');
       onClose();
     } catch (e: any) { alert(e.message); } finally { setBusy(false); }
   };
   return (
-    <Modal title="Buy JR" onClose={onClose}>
-      <p className="muted">Exchange rate: 1 JR = {pln(rate)}</p>
-      <label className="field"><span>Amount (JR)</span>
+    <Modal title="Kup JR" onClose={onClose}>
+      <p className="muted">Kurs wymiany: 1 JR = {pln(rate)}</p>
+      <label className="field"><span>Kwota (JR)</span>
         <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} min={1} />
       </label>
-      <p className="muted">You will pay approximately <b>{pln(Number(amount) * rate)}</b>.</p>
+      <p className="muted">Zapłacisz około <b>{pln(Number(amount) * rate)}</b>.</p>
       <div className="btn-row">
-        <button className="btn primary" onClick={submit} disabled={busy}>Confirm purchase</button>
-        <button className="btn ghost" onClick={onClose}>Cancel</button>
+        <button className="btn primary" onClick={submit} disabled={busy}>Potwierdź zakup</button>
+        <button className="btn ghost" onClick={onClose}>Anuluj</button>
       </div>
     </Modal>
   );
@@ -117,19 +117,19 @@ function PayoutModal({ max, onClose }: { max: number; onClose: () => void }) {
     setBusy(true);
     try {
       await api.post('/payments/payout-jr', { jr: Number(amount) });
-      alert('Payout requested.');
+      alert('Wypłata zgłoszona.');
       onClose();
     } catch (e: any) { alert(e.message); } finally { setBusy(false); }
   };
   return (
-    <Modal title="Payout JR" onClose={onClose}>
-      <p className="muted">Available for payout: <b>{jr(max)}</b></p>
-      <label className="field"><span>Amount (JR)</span>
+    <Modal title="Wypłać JR" onClose={onClose}>
+      <p className="muted">Dostępne do wypłaty: <b>{jr(max)}</b></p>
+      <label className="field"><span>Kwota (JR)</span>
         <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} min={1} max={max} />
       </label>
       <div className="btn-row">
-        <button className="btn primary" onClick={submit} disabled={busy || max <= 0}>Request payout</button>
-        <button className="btn ghost" onClick={onClose}>Cancel</button>
+        <button className="btn primary" onClick={submit} disabled={busy || max <= 0}>Zgłoś wypłatę</button>
+        <button className="btn ghost" onClick={onClose}>Anuluj</button>
       </div>
     </Modal>
   );
@@ -141,17 +141,17 @@ function Transactions() {
   return (
     <div className="card">
       <table>
-        <thead><tr><th>Type</th><th>Description</th><th>Date</th><th style={{ textAlign: 'right' }}>Amount</th></tr></thead>
+        <thead><tr><th>Typ</th><th>Opis</th><th>Data</th><th style={{ textAlign: 'right' }}>Kwota</th></tr></thead>
         <tbody>
           {items.map((t) => (
             <tr key={t.id}>
-              <td>{txLabel(t.type)}{t.cancelled && <span className="badge gray" style={{ marginLeft: 6 }}>cancelled</span>}</td>
+              <td>{txLabel(t.type)}{t.cancelled && <span className="badge gray" style={{ marginLeft: 6 }}>anulowana</span>}</td>
               <td className="muted">{t.description || t.programName || '—'}</td>
-              <td className="muted">{new Date(t.timestamp).toLocaleDateString()}</td>
+              <td className="muted">{new Date(t.timestamp).toLocaleDateString('pl-PL')}</td>
               <td style={{ textAlign: 'right', fontWeight: 700 }}>{jr(t.value)}</td>
             </tr>
           ))}
-          {items.length === 0 && <tr><td colSpan={4} className="empty">No transactions.</td></tr>}
+          {items.length === 0 && <tr><td colSpan={4} className="empty">Brak transakcji.</td></tr>}
         </tbody>
       </table>
     </div>
@@ -166,22 +166,22 @@ function Returns() {
   return (
     <div>
       <div className="btn-row" style={{ marginBottom: 16 }}>
-        <button className="btn primary" onClick={() => setOpen(true)}>Report a return</button>
+        <button className="btn primary" onClick={() => setOpen(true)}>Zgłoś zwrot</button>
       </div>
       <div className="card">
         <table>
-          <thead><tr><th>Type</th><th>Amount</th><th>Status</th><th>Description</th><th>Date</th></tr></thead>
+          <thead><tr><th>Typ</th><th>Kwota</th><th>Status</th><th>Opis</th><th>Data</th></tr></thead>
           <tbody>
             {items.map((r) => (
               <tr key={r.id}>
-                <td>{r.type === 1 ? 'Cash' : r.type === 2 ? 'JR' : 'Access fee'}</td>
+                <td>{r.type === 1 ? 'Gotówka' : r.type === 2 ? 'JR' : 'Opłata za dostęp'}</td>
                 <td>{jr(r.value)}</td>
                 <td><StatusBadge status={r.status} /></td>
                 <td className="muted">{r.description}</td>
-                <td className="muted">{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td className="muted">{new Date(r.createdAt).toLocaleDateString('pl-PL')}</td>
               </tr>
             ))}
-            {items.length === 0 && <tr><td colSpan={5} className="empty">No return requests.</td></tr>}
+            {items.length === 0 && <tr><td colSpan={5} className="empty">Brak wniosków o zwrot.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -197,36 +197,36 @@ function ReturnModal({ onClose }: { onClose: () => void }) {
   const submit = async () => {
     try {
       await api.post('/payments/cashback', { type: Number(type), value: Number(value), description });
-      alert('Return request submitted.');
+      alert('Wniosek o zwrot został złożony.');
       onClose();
     } catch (e: any) { alert(e.message); }
   };
   return (
-    <Modal title="Report a return" onClose={onClose}>
-      <label className="field"><span>Return type</span>
+    <Modal title="Zgłoś zwrot" onClose={onClose}>
+      <label className="field"><span>Typ zwrotu</span>
         <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="1">Cash (to bank account)</option>
-          <option value="2">JR credit</option>
+          <option value="1">Gotówka (na konto bankowe)</option>
+          <option value="2">Uznanie w JR</option>
         </select>
       </label>
-      <label className="field"><span>Amount (JR)</span>
+      <label className="field"><span>Kwota (JR)</span>
         <input type="number" value={value} onChange={(e) => setValue(e.target.value)} min={1} />
       </label>
-      <label className="field"><span>Description</span>
+      <label className="field"><span>Opis</span>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
       </label>
       <div className="btn-row">
-        <button className="btn primary" onClick={submit}>Submit</button>
-        <button className="btn ghost" onClick={onClose}>Cancel</button>
+        <button className="btn primary" onClick={submit}>Wyślij</button>
+        <button className="btn ghost" onClick={onClose}>Anuluj</button>
       </div>
     </Modal>
   );
 }
 
 function StatusBadge({ status }: { status: number }) {
-  if (status === 2) return <span className="badge green">accepted</span>;
-  if (status === 3) return <span className="badge red">rejected</span>;
-  return <span className="badge amber">pending</span>;
+  if (status === 2) return <span className="badge green">zaakceptowana</span>;
+  if (status === 3) return <span className="badge red">odrzucona</span>;
+  return <span className="badge amber">oczekująca</span>;
 }
 
 export function Modal({ title, children, onClose }: { title: string; children: any; onClose: () => void }) {

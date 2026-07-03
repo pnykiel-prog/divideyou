@@ -78,8 +78,8 @@ router.get('/admins', requireAdmin('USER_DATA'), wrap(async (_req, res) => {
 router.post('/', requireSuperAdmin, wrap(async (req, res) => {
   const b = req.body;
   const email = String(b.email || '').toLowerCase();
-  if (!email || !b.password) throw badRequest('Email and password required');
-  if (await prisma.user.findUnique({ where: { email } })) throw badRequest('Email already exists');
+  if (!email || !b.password) throw badRequest('E-mail i hasło są wymagane');
+  if (await prisma.user.findUnique({ where: { email } })) throw badRequest('E-mail już istnieje');
   const isAdmin = Number(b.type) === UserType.ADMIN || b.accountType === 'cms';
 
   const user = await prisma.user.create({
@@ -117,7 +117,7 @@ router.get('/:id', requireAdmin('USER_DATA'), wrap(async (req, res) => {
     where: { id: req.params.id },
     include: { client: { include: { partnerOf: true } }, admin: true },
   });
-  if (!u) throw notFound('User not found');
+  if (!u) throw notFound('Nie znaleziono użytkownika');
   const s = await currentSettings();
   let wallet = null;
   if (u.client) wallet = walletDto(await calculateWallet(u.client.id), s.jrExchangeRate);
@@ -163,7 +163,7 @@ router.get('/:id', requireAdmin('USER_DATA'), wrap(async (req, res) => {
 // PATCH /admin/users/:id/user-data
 router.patch('/:id/user-data', requireAdmin('USER_DATA', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true, admin: true } });
-  if (!u) throw notFound('User not found');
+  if (!u) throw notFound('Nie znaleziono użytkownika');
   const b = req.body;
   if (u.client) {
     await prisma.userClient.update({
@@ -216,12 +216,12 @@ router.patch('/:id/confirm-email', requireAdmin('USER_DATA', 2), wrap(async (req
 // PATCH /admin/users/:id/confirm-full-access — grant access + charge fee
 router.patch('/:id/confirm-full-access', requireAdmin('USER_DATA', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const s = await currentSettings();
   const payment = await prisma.payment.create({
     data: { clientId: u.client.id, type: PaymentType.ACCESS_FEE, status: PaymentStatus.ACCEPTED, value: s.accessPrice },
   });
-  await logTransaction({ clientId: u.client.id, type: TransactionType.ACCESS_FEE_PURCHASE, value: 0, paymentId: payment.id, description: 'Access granted by admin' });
+  await logTransaction({ clientId: u.client.id, type: TransactionType.ACCESS_FEE_PURCHASE, value: 0, paymentId: payment.id, description: 'Dostęp przyznany przez administratora' });
   await prisma.userClient.update({ where: { id: u.client.id }, data: { accessFeePaid: true, accessPaidDate: new Date(), demoExpired: false } });
   await prisma.user.update({ where: { id: u.id }, data: { blockedStatus: 0 } });
   res.json({ ok: true });
@@ -237,10 +237,10 @@ router.patch('/:id/allow-only-pay', requireAdmin('USER_DATA', 2), wrap(async (re
 // POST /admin/users/:id/account-donation — credit JR
 router.post('/:id/account-donation', requireAdmin('USER_PAYMENT', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const jr = toMinor(Number(req.body.value || 0));
-  if (jr <= 0) throw badRequest('Invalid amount');
-  await logTransaction({ clientId: u.client.id, type: TransactionType.ACCOUNT_DONATION, value: jr, description: 'Admin JR credit' });
+  if (jr <= 0) throw badRequest('Nieprawidłowa kwota');
+  await logTransaction({ clientId: u.client.id, type: TransactionType.ACCOUNT_DONATION, value: jr, description: 'Uznanie JR przez administratora' });
   await refreshClientDenormalized(u.client.id);
   res.json({ ok: true });
 }));
@@ -248,7 +248,7 @@ router.post('/:id/account-donation', requireAdmin('USER_PAYMENT', 2), wrap(async
 // PATCH /admin/users/:id/assign-partner
 router.patch('/:id/assign-partner', requireAdmin('USER_PARTNERSHIP', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const partnerNumber = String(req.body.partner || '');
   const partner = partnerNumber ? await prisma.userClient.findUnique({ where: { partnerNumber } }) : null;
   await prisma.userClient.update({ where: { id: u.client.id }, data: { partnerOfId: partner?.id ?? null } });
@@ -258,7 +258,7 @@ router.patch('/:id/assign-partner', requireAdmin('USER_PARTNERSHIP', 2), wrap(as
 // GET /admin/users/:id/transactions
 router.get('/:id/transactions', requireAdmin('USER_PAYMENT'), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const txs = await prisma.transaction.findMany({
     where: { clientId: u.client.id },
     orderBy: { id: 'desc' },
@@ -273,7 +273,7 @@ router.get('/:id/bonuses', requireAdmin('USER_PROGRAM'), wrap((req, res) => user
 
 async function userPurchases(req: any, res: any, bonus: boolean) {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const purchases = await prisma.purchase.findMany({
     where: { userClientId: u.client.id, isBonus: bonus },
     include: { program: true, location: { include: { program: true } }, attributes: true },
@@ -285,14 +285,14 @@ async function userPurchases(req: any, res: any, bonus: boolean) {
 // Commission thresholds
 router.get('/:id/list-commission-threshold', requireAdmin('USER_PARTNERSHIP'), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   const list = await prisma.partnershipCommissionThreshold.findMany({ where: { clientId: u.client.id }, orderBy: { lowLimit: 'asc' } });
   res.json({ custom: u.client.customPartnershipCommission, base: u.client.partnershipCommissionValue, thresholds: list });
 }));
 
 router.post('/:id/set-custom-commission', requireAdmin('USER_PARTNERSHIP', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   await prisma.userClient.update({
     where: { id: u.client.id },
     data: { customPartnershipCommission: !!req.body.custom, partnershipCommissionValue: Number(req.body.commission) || 0 },
@@ -302,7 +302,7 @@ router.post('/:id/set-custom-commission', requireAdmin('USER_PARTNERSHIP', 2), w
 
 router.post('/:id/add-commission-threshold', requireAdmin('USER_PARTNERSHIP', 2), wrap(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!u?.client) throw notFound('Client not found');
+  if (!u?.client) throw notFound('Nie znaleziono klienta');
   await prisma.partnershipCommissionThreshold.create({
     data: { clientId: u.client.id, lowLimit: Number(req.body.min) || 0, value: Number(req.body.value) || 0 },
   });

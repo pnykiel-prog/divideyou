@@ -28,7 +28,7 @@ export default function Regulations() {
         content: rule.content,
         required: rule.required,
       });
-      setMsg('Saved');
+      setMsg('Zapisano');
       load();
     } catch (err: any) {
       setError(err);
@@ -40,12 +40,12 @@ export default function Regulations() {
   return (
     <div>
       <div className="page-head">
-        <h1>Regulations</h1>
+        <h1>Regulaminy</h1>
         <button
           className="btn primary"
           onClick={() => setItems((it) => [...it, { id: null, name: '', content: '', required: false }])}
         >
-          + Add rule
+          + Dodaj regulamin
         </button>
       </div>
 
@@ -53,7 +53,7 @@ export default function Regulations() {
       <ErrorAlert error={error} />
 
       {items.length === 0 ? (
-        <Empty>No rules.</Empty>
+        <Empty>Brak regulaminów.</Empty>
       ) : (
         items.map((rule, i) => (
           <RuleCard
@@ -80,21 +80,21 @@ function RuleCard({
   return (
     <div className="card pad" style={{ marginBottom: 16 }}>
       <div className="grid cols-2">
-        <Field label="Name">
+        <Field label="Nazwa">
           <input value={rule.name || ''} onChange={(e) => onChange({ ...rule, name: e.target.value })} />
         </Field>
         <label className="field">
-          <span>Required</span>
+          <span>Wymagany</span>
           <select
             value={rule.required ? '1' : '0'}
             onChange={(e) => onChange({ ...rule, required: e.target.value === '1' })}
           >
-            <option value="0">No</option>
-            <option value="1">Yes</option>
+            <option value="0">Nie</option>
+            <option value="1">Tak</option>
           </select>
         </label>
       </div>
-      <Field label="Content">
+      <Field label="Treść">
         <textarea
           rows={4}
           value={rule.content || ''}
@@ -103,7 +103,7 @@ function RuleCard({
       </Field>
       <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
         <button className="btn primary" onClick={() => onSave(rule)}>
-          Save
+          Zapisz
         </button>
       </div>
     </div>

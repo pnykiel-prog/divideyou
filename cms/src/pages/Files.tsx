@@ -9,7 +9,7 @@ interface Crumb {
 }
 
 export default function Files() {
-  const [trail, setTrail] = useState<Crumb[]>([{ id: null, name: 'Root' }]);
+  const [trail, setTrail] = useState<Crumb[]>([{ id: null, name: 'Główny' }]);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -34,7 +34,7 @@ export default function Files() {
   const goto = (i: number) => setTrail((t) => t.slice(0, i + 1));
 
   const del = async (id: any) => {
-    if (!confirm('Delete this item?')) return;
+    if (!confirm('Usunąć ten element?')) return;
     try {
       await api.del(`/admin/file/${id}`);
       load();
@@ -46,13 +46,13 @@ export default function Files() {
   return (
     <div>
       <div className="page-head">
-        <h1>Files</h1>
+        <h1>Pliki</h1>
         <div className="btn-row">
           <button className="btn" onClick={() => setModal('dir')}>
-            + New folder
+            + Nowy folder
           </button>
           <button className="btn primary" onClick={() => setModal('file')}>
-            + Add file
+            + Dodaj plik
           </button>
         </div>
       </div>
@@ -76,13 +76,13 @@ export default function Files() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>Empty folder.</Empty>
+          <Empty>Pusty folder.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
+                <th>Nazwa</th>
+                <th>Typ</th>
                 <th />
               </tr>
             </thead>
@@ -100,12 +100,12 @@ export default function Files() {
                   </td>
                   <td>
                     <span className={`badge ${item.isDirectory ? 'blue' : 'gray'}`}>
-                      {item.isDirectory ? 'Folder' : 'File'}
+                      {item.isDirectory ? 'Folder' : 'Plik'}
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <button className="btn sm danger" onClick={() => del(item.id)}>
-                      Delete
+                      Usuń
                     </button>
                   </td>
                 </tr>
@@ -162,23 +162,23 @@ function CreateModal({
   };
 
   return (
-    <Modal title={kind === 'dir' ? 'New folder' : 'Add file'} onClose={onClose}>
+    <Modal title={kind === 'dir' ? 'Nowy folder' : 'Dodaj plik'} onClose={onClose}>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
-        <Field label="Name">
+        <Field label="Nazwa">
           <input value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
         </Field>
         {kind === 'file' && (
-          <Field label="Marketing material (URL / content)">
+          <Field label="Materiał marketingowy (URL / treść)">
             <input value={marketingMaterial} onChange={(e) => setMarketingMaterial(e.target.value)} />
           </Field>
         )}
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Create'}
+            {busy ? 'Zapisywanie…' : 'Utwórz'}
           </button>
         </div>
       </form>

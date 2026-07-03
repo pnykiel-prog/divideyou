@@ -37,7 +37,7 @@ export default function Bonuses() {
   useEffect(load, []);
 
   const del = async (id: any) => {
-    if (!confirm('Delete this bonus?')) return;
+    if (!confirm('Usunąć ten bonus?')) return;
     try {
       await api.del(`/admin/programs/${id}/bonus`);
       load();
@@ -58,9 +58,9 @@ export default function Bonuses() {
   return (
     <div>
       <div className="page-head">
-        <h1>Bonuses</h1>
+        <h1>Bonusy</h1>
         <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-          + Add bonus
+          + Dodaj bonus
         </button>
       </div>
 
@@ -70,16 +70,16 @@ export default function Bonuses() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No bonuses.</Empty>
+          <Empty>Brak bonusów.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Entry fee</th>
-                <th>Max purchases</th>
+                <th>Nazwa</th>
+                <th>Opłata wstępna</th>
+                <th>Maks. zakupów</th>
                 <th>VIP</th>
-                <th>Visible</th>
+                <th>Widoczny</th>
                 <th />
               </tr>
             </thead>
@@ -100,10 +100,10 @@ export default function Bonuses() {
                   </td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button className="btn sm" style={{ marginRight: 6 }} onClick={() => openEdit(b.id)}>
-                      Edit
+                      Edytuj
                     </button>
                     <button className="btn sm danger" onClick={() => del(b.id)}>
-                      Delete
+                      Usuń
                     </button>
                   </td>
                 </tr>
@@ -172,45 +172,45 @@ function BonusModal({
   };
 
   return (
-    <Modal title={editing ? 'Edit bonus' : 'Add bonus'} onClose={onClose} wide>
+    <Modal title={editing ? 'Edytuj bonus' : 'Dodaj bonus'} onClose={onClose} wide>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
-        <Field label="Name">
+        <Field label="Nazwa">
           <input value={form.name || ''} onChange={(e) => set('name', e.target.value)} required />
         </Field>
-        <Field label="Description">
+        <Field label="Opis">
           <textarea rows={2} value={form.description || ''} onChange={(e) => set('description', e.target.value)} />
         </Field>
-        <Field label="Marketing text">
+        <Field label="Tekst marketingowy">
           <textarea rows={2} value={form.marketingText || ''} onChange={(e) => set('marketingText', e.target.value)} />
         </Field>
         <div className="grid cols-3">
-          <Field label="Grace period (days)">
+          <Field label="Okres umowy (dni)">
             <input type="number" value={form.gracePeriod ?? ''} onChange={(e) => set('gracePeriod', e.target.value)} />
           </Field>
-          <Field label="Entry fee (JR)">
+          <Field label="Opłata wstępna (JR)">
             <input type="number" value={form.entryFee ?? ''} onChange={(e) => set('entryFee', e.target.value)} />
           </Field>
-          <Field label="Max purchases">
+          <Field label="Maks. zakupów">
             <input type="number" value={form.maxPurchases ?? ''} onChange={(e) => set('maxPurchases', e.target.value)} />
           </Field>
         </div>
         <div className="grid cols-3">
-          <Field label="Subscription (JR)">
+          <Field label="Abonament (JR)">
             <input
               type="number"
               value={form.subscriptionPrice ?? ''}
               onChange={(e) => set('subscriptionPrice', e.target.value)}
             />
           </Field>
-          <Field label="Amount blocked (JR)">
+          <Field label="Kwota zablokowana (JR)">
             <input
               type="number"
               value={form.amountBlocked ?? ''}
               onChange={(e) => set('amountBlocked', e.target.value)}
             />
           </Field>
-          <Field label="Minimal JR for view">
+          <Field label="Minimalne JR do podglądu">
             <input
               type="number"
               value={form.minimalJrForView ?? ''}
@@ -222,31 +222,31 @@ function BonusModal({
           <label className="field">
             <span>VIP</span>
             <select value={form.vip ? '1' : '0'} onChange={(e) => set('vip', e.target.value === '1')}>
-              <option value="0">No</option>
-              <option value="1">Yes</option>
+              <option value="0">Nie</option>
+              <option value="1">Tak</option>
             </select>
           </label>
           <label className="field">
-            <span>Recommended</span>
+            <span>Polecany</span>
             <select value={form.recommended ? '1' : '0'} onChange={(e) => set('recommended', e.target.value === '1')}>
-              <option value="0">No</option>
-              <option value="1">Yes</option>
+              <option value="0">Nie</option>
+              <option value="1">Tak</option>
             </select>
           </label>
           <label className="field">
-            <span>Visible</span>
+            <span>Widoczny</span>
             <select value={form.visible ? '1' : '0'} onChange={(e) => set('visible', e.target.value === '1')}>
-              <option value="1">Yes</option>
-              <option value="0">No</option>
+              <option value="1">Tak</option>
+              <option value="0">Nie</option>
             </select>
           </label>
         </div>
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save bonus'}
+            {busy ? 'Zapisywanie…' : 'Zapisz bonus'}
           </button>
         </div>
       </form>

@@ -22,7 +22,7 @@ const cid = (req: any) => req.auth.client.id as string;
 // POST /payments/purchase-jr — buy JR with money
 router.post('/purchase-jr', wrap(async (req, res) => {
   const jr = toMinor(Number(req.body.jr ?? req.body.value ?? 0));
-  if (jr <= 0) throw badRequest('Invalid JR amount');
+  if (jr <= 0) throw badRequest('Nieprawidłowa kwota JR');
   const s = await currentSettings();
   const pln = jrToPln(jr, s.jrExchangeRate);
 
@@ -34,7 +34,7 @@ router.post('/purchase-jr', wrap(async (req, res) => {
     type: TransactionType.JR_PURCHASE,
     value: jr,
     paymentId: payment.id,
-    description: 'JR top-up',
+    description: 'Doładowanie JR',
   });
 
   // Pay upline commission immediately (legacy behaviour).
@@ -45,7 +45,7 @@ router.post('/purchase-jr', wrap(async (req, res) => {
 
 // POST /payments/access-fee — pay one-time platform access fee
 router.post('/access-fee', wrap(async (req, res) => {
-  if (req.auth.client.accessFeePaid) throw badRequest('Access fee already paid');
+  if (req.auth.client.accessFeePaid) throw badRequest('Opłata za dostęp już uiszczona');
   const s = await currentSettings();
   const payment = await prisma.payment.create({
     data: { clientId: cid(req), type: PaymentType.ACCESS_FEE, status: PaymentStatus.ACCEPTED, value: s.accessPrice },
@@ -55,7 +55,7 @@ router.post('/access-fee', wrap(async (req, res) => {
     type: TransactionType.ACCESS_FEE_PURCHASE,
     value: 0,
     paymentId: payment.id,
-    description: 'Platform access fee',
+    description: 'Opłata za dostęp',
   });
   await prisma.userClient.update({
     where: { id: cid(req) },
@@ -68,9 +68,9 @@ router.post('/access-fee', wrap(async (req, res) => {
 // POST /payments/payout-jr — withdraw JR to money
 router.post('/payout-jr', wrap(async (req, res) => {
   const jr = toMinor(Number(req.body.jr ?? req.body.value ?? 0));
-  if (jr <= 0) throw badRequest('Invalid amount');
+  if (jr <= 0) throw badRequest('Nieprawidłowa kwota');
   const w = await calculateWallet(cid(req));
-  if (w.toPayout < jr) throw badRequest('Amount exceeds funds available for payout');
+  if (w.toPayout < jr) throw badRequest('Kwota przekracza środki dostępne do wypłaty');
   const s = await currentSettings();
   const pln = jrToPln(jr, s.jrExchangeRate);
   const payment = await prisma.payment.create({
@@ -81,18 +81,18 @@ router.post('/payout-jr', wrap(async (req, res) => {
     type: TransactionType.PAYOUT,
     value: jr,
     paymentId: payment.id,
-    description: 'JR payout',
+    description: 'Wypłata JR',
   });
   res.json({ ok: true, paymentId: payment.id });
 }));
 
 // POST /payments/payout-commissions — commission payout (business clients)
 router.post('/payout-commissions', wrap(async (req, res) => {
-  if (req.auth.client.type !== 2) throw badRequest('Commission payout is available for company accounts only');
+  if (req.auth.client.type !== 2) throw badRequest('Wypłata prowizji jest dostępna tylko dla kont firmowych');
   const jr = toMinor(Number(req.body.jr ?? req.body.value ?? 0));
-  if (jr <= 0) throw badRequest('Invalid amount');
+  if (jr <= 0) throw badRequest('Nieprawidłowa kwota');
   const w = await calculateWallet(cid(req));
-  if (w.toCommissionPayout < jr) throw badRequest('Amount exceeds commission funds');
+  if (w.toCommissionPayout < jr) throw badRequest('Kwota przekracza środki prowizyjne');
   const s = await currentSettings();
   const pln = jrToPln(jr, s.jrExchangeRate);
   const payment = await prisma.payment.create({
@@ -103,7 +103,7 @@ router.post('/payout-commissions', wrap(async (req, res) => {
     type: TransactionType.COMMISSION_PAYOUT,
     value: jr,
     paymentId: payment.id,
-    description: 'Commission payout',
+    description: 'Wypłata prowizji',
   });
   res.json({ ok: true, paymentId: payment.id });
 }));
@@ -112,11 +112,11 @@ router.post('/payout-commissions', wrap(async (req, res) => {
 router.post('/cashback', wrap(async (req, res) => {
   const type = Number(req.body.type) || RequestType.CASH;
   const jr = toMinor(Number(req.body.value ?? 0));
-  if (jr <= 0) throw badRequest('Invalid amount');
+  if (jr <= 0) throw badRequest('Nieprawidłowa kwota');
   const w = await calculateWallet(cid(req));
-  if (w.active < jr) throw badRequest('Amount exceeds active funds');
+  if (w.active < jr) throw badRequest('Kwota przekracza dostępne środki');
   if (type === RequestType.CASH && !req.auth.client.bankAccountNumber) {
-    throw badRequest('Add a bank account number before requesting a cash return');
+    throw badRequest('Dodaj numer konta bankowego przed złożeniem wniosku o zwrot gotówki');
   }
   const s = await currentSettings();
   const request = await prisma.clientRequest.create({
@@ -134,7 +134,7 @@ router.post('/cashback', wrap(async (req, res) => {
     type: TransactionType.REQUEST_PAYOUT,
     value: jr,
     clientRequestId: request.id,
-    description: 'Return request',
+    description: 'Wniosek o zwrot',
   });
   res.json({ ok: true, requestId: request.id });
 }));
@@ -145,7 +145,7 @@ router.post('/cashback-cancel', wrap(async (req, res) => {
     where: { id: req.body.id, clientId: cid(req), status: RequestStatus.PENDING },
     include: { transaction: true },
   });
-  if (!request) throw notFound('Request not found');
+  if (!request) throw notFound('Nie znaleziono wniosku');
   await prisma.clientRequest.update({ where: { id: request.id }, data: { status: RequestStatus.REJECTED } });
   if (request.transaction) {
     await prisma.transaction.update({ where: { id: request.transaction.id }, data: { cancelled: true } });
@@ -157,7 +157,7 @@ router.post('/cashback-cancel', wrap(async (req, res) => {
 // GET /payments/check/:id — payment status
 router.get('/check/:id', wrap(async (req, res) => {
   const payment = await prisma.payment.findFirst({ where: { id: req.params.id, clientId: cid(req) } });
-  if (!payment) throw notFound('Payment not found');
+  if (!payment) throw notFound('Nie znaleziono płatności');
   res.json({ id: payment.id, status: payment.status });
 }));
 

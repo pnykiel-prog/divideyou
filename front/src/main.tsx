@@ -20,7 +20,7 @@ import Settings from './pages/Settings';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="spinner">Loading…</div>;
+  if (loading) return <div className="spinner">Ładowanie…</div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

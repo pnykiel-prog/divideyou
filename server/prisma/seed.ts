@@ -45,7 +45,7 @@ export async function runSeed(prisma: PrismaClient) {
       jrProtectionPeriodDays: 0,
       minJrForVip: jr(500),
       minJrForBonus: jr(100),
-      partnerTerm: 'By joining the DivideYou partnership programme you agree to promote the platform fairly and to the referral commission terms.',
+      partnerTerm: 'Przystępując do programu partnerskiego DivideYou zgadzasz się na uczciwe promowanie platformy oraz na warunki prowizji za polecenia.',
     },
   });
 
@@ -75,37 +75,37 @@ export async function runSeed(prisma: PrismaClient) {
   // ---- Registration rules ----
   await prisma.registrationRule.createMany({
     data: [
-      { name: 'Platform terms', content: 'I accept the DivideYou platform terms and conditions.', required: true, sortOrder: 0 },
-      { name: 'Privacy policy (RODO)', content: 'I consent to the processing of my personal data.', required: true, sortOrder: 1 },
-      { name: 'Marketing', content: 'I agree to receive marketing communications.', required: false, sortOrder: 2 },
+      { name: 'Regulamin platformy', content: 'Akceptuję regulamin platformy DivideYou.', required: true, sortOrder: 0 },
+      { name: 'Polityka prywatności (RODO)', content: 'Wyrażam zgodę na przetwarzanie moich danych osobowych.', required: true, sortOrder: 1 },
+      { name: 'Marketing', content: 'Wyrażam zgodę na otrzymywanie komunikatów marketingowych.', required: false, sortOrder: 2 },
     ],
   });
 
   // ---- News ----
   await prisma.news.createMany({
     data: [
-      { slug: 'welcome-divideyou', title: 'Welcome to the new DivideYou platform', content: 'We are excited to launch the rebuilt DivideYou. Explore programs, top up your JR wallet and start saving.', photo: null },
-      { slug: 'new-partnership-tiers', title: 'New partnership commission tiers', content: 'Invite more friends and unlock higher commission rates — up to 8%.', photo: null },
-      { slug: 'summer-programs', title: 'Summer programs are live', content: 'Fresh programs and locations added for the summer season.', photo: null },
+      { slug: 'welcome-divideyou', title: 'Witamy na nowej platformie DivideYou', content: 'Z radością uruchamiamy przebudowaną platformę DivideYou. Przeglądaj programy, doładuj portfel JR i zacznij oszczędzać.', photo: null },
+      { slug: 'new-partnership-tiers', title: 'Nowe progi prowizji partnerskiej', content: 'Zaproś więcej znajomych i odblokuj wyższe stawki prowizji — do 8%.', photo: null },
+      { slug: 'summer-programs', title: 'Letnie programy są już dostępne', content: 'Nowe programy i lokalizacje dodane na sezon letni.', photo: null },
     ],
   });
 
   // ---- FAQ ----
   await prisma.faq.createMany({
     data: [
-      { question: 'What is JR?', answer: 'JR (settlement unit) is the internal currency you top up with money and spend on programs.', sortOrder: 0, onDashboard: true },
-      { question: 'How do I buy a program?', answer: 'Browse programs, open a location, configure it in the creator and confirm the purchase using your JR balance.', sortOrder: 1, onDashboard: true },
-      { question: 'How does the partnership programme work?', answer: 'Share your referral link; when the people you invite top up JR, you earn a commission.', sortOrder: 2, onDashboard: false },
-      { question: 'How do I withdraw funds?', answer: 'Funds become available for payout after the withdrawal period. Request a payout from your wallet.', sortOrder: 3, onDashboard: false },
+      { question: 'Czym jest JR?', answer: 'JR (jednostka rozliczeniowa) to wewnętrzna waluta, którą doładowujesz pieniędzmi i wydajesz na programy.', sortOrder: 0, onDashboard: true },
+      { question: 'Jak kupić program?', answer: 'Przeglądaj programy, otwórz lokalizację, skonfiguruj ją w kreatorze i potwierdź zakup, korzystając z salda JR.', sortOrder: 1, onDashboard: true },
+      { question: 'Jak działa program partnerski?', answer: 'Udostępnij swój link polecający; gdy zaproszone przez Ciebie osoby doładują JR, otrzymujesz prowizję.', sortOrder: 2, onDashboard: false },
+      { question: 'Jak wypłacić środki?', answer: 'Środki stają się dostępne do wypłaty po okresie karencji. Zleć wypłatę ze swojego portfela.', sortOrder: 3, onDashboard: false },
     ],
   });
 
   // ---- Programs + locations ----
   const fitness = await prisma.program.create({
     data: {
-      name: 'FitLife Gym Membership',
-      description: 'Access to a national network of fitness clubs with a flexible savings plan.',
-      marketingText: 'Stay fit while you save.',
+      name: 'Karnet na siłownię FitLife',
+      description: 'Dostęp do ogólnokrajowej sieci klubów fitness z elastycznym planem oszczędzania.',
+      marketingText: 'Zadbaj o formę, oszczędzając.',
       gracePeriod: 6,
       entryFee: jr(50),
       subscriptionPrice: jr(20),
@@ -117,8 +117,8 @@ export async function runSeed(prisma: PrismaClient) {
   const gymWarsaw = await prisma.location.create({
     data: {
       programId: fitness.id,
-      name: 'FitLife Warsaw Centrum',
-      description: 'Flagship club in the heart of Warsaw.',
+      name: 'FitLife Warszawa Centrum',
+      description: 'Flagowy klub w sercu Warszawy.',
       address: 'ul. Marszałkowska 1', city: 'Warszawa', postalCode: '00-001',
       latitude: 52.2297, longitude: 21.0122,
       purchaseDuration: 12, entryFee: jr(50), subscriptionPrice: jr(20), amountBlocked: jr(100), maxPurchases: 100,
@@ -128,7 +128,7 @@ export async function runSeed(prisma: PrismaClient) {
     data: {
       programId: fitness.id,
       name: 'FitLife Kraków Kazimierz',
-      description: 'Modern club in Kraków.',
+      description: 'Nowoczesny klub w Krakowie.',
       address: 'ul. Krakowska 10', city: 'Kraków', postalCode: '30-001',
       latitude: 50.0614, longitude: 19.9366,
       purchaseDuration: 12, entryFee: jr(40), subscriptionPrice: jr(18), amountBlocked: jr(80), maxPurchases: 100,
@@ -136,29 +136,29 @@ export async function runSeed(prisma: PrismaClient) {
   });
   // attributes for the Warsaw location
   const plan = await prisma.programAttribute.create({
-    data: { locationId: gymWarsaw.id, name: 'Membership plan', type: 1, isRequired: true, sortOrder: 0 },
+    data: { locationId: gymWarsaw.id, name: 'Plan członkostwa', type: 1, isRequired: true, sortOrder: 0 },
   });
   await prisma.programAttribute.createMany({
     data: [
       { locationId: gymWarsaw.id, parentId: plan.id, name: 'Standard', type: 2, isFinal: true, startFee: jr(0), subscriptionPrice: jr(0), sortOrder: 0 },
-      { locationId: gymWarsaw.id, parentId: plan.id, name: 'Premium (+pool & sauna)', type: 2, isFinal: true, startFee: jr(20), subscriptionPrice: jr(10), amountBlocked: jr(20), sortOrder: 1 },
+      { locationId: gymWarsaw.id, parentId: plan.id, name: 'Premium (+basen i sauna)', type: 2, isFinal: true, startFee: jr(20), subscriptionPrice: jr(10), amountBlocked: jr(20), sortOrder: 1 },
     ],
   });
   await prisma.programAttribute.create({
-    data: { locationId: gymWarsaw.id, name: 'Personal training sessions', type: 3, unit: 'sessions', maxCount: 10, startFee: jr(5), isMultiselect: true, sortOrder: 1 },
+    data: { locationId: gymWarsaw.id, name: 'Sesje treningu personalnego', type: 3, unit: 'sesje', maxCount: 10, startFee: jr(5), isMultiselect: true, sortOrder: 1 },
   });
 
   const language = await prisma.program.create({
     data: {
-      name: 'SpeakUp Language Courses',
-      description: 'Learn a new language with a pay-as-you-save plan across partner schools.',
+      name: 'Kursy językowe SpeakUp',
+      description: 'Ucz się nowego języka z planem oszczędnościowym w szkołach partnerskich.',
       gracePeriod: 3, entryFee: jr(30), subscriptionPrice: jr(15), amountBlocked: jr(60),
       gallery: JSON.stringify([]),
     },
   });
   await prisma.location.create({
     data: {
-      programId: language.id, name: 'SpeakUp Wrocław', description: 'Language school in Wrocław.',
+      programId: language.id, name: 'SpeakUp Wrocław', description: 'Szkoła językowa we Wrocławiu.',
       address: 'ul. Świdnicka 5', city: 'Wrocław', postalCode: '50-001', latitude: 51.1079, longitude: 17.0385,
       purchaseDuration: 9, entryFee: jr(30), subscriptionPrice: jr(15), amountBlocked: jr(60), maxPurchases: 50,
     },
@@ -167,15 +167,15 @@ export async function runSeed(prisma: PrismaClient) {
   // VIP program
   const vip = await prisma.program.create({
     data: {
-      name: 'Prestige Wellness Club', vip: true,
-      description: 'Exclusive VIP wellness membership. Requires a minimum JR balance.',
+      name: 'Klub Wellness Prestige', vip: true,
+      description: 'Ekskluzywne członkostwo wellness VIP. Wymaga minimalnego salda JR.',
       gracePeriod: 12, entryFee: jr(200), subscriptionPrice: jr(80), amountBlocked: jr(400), minimalJrForView: jr(500),
       gallery: JSON.stringify([]),
     },
   });
   await prisma.location.create({
     data: {
-      programId: vip.id, name: 'Prestige Sopot', description: 'Seaside VIP wellness retreat.',
+      programId: vip.id, name: 'Prestige Sopot', description: 'Nadmorski ośrodek wellness VIP.',
       address: 'ul. Bohaterów Monte Cassino 1', city: 'Sopot', postalCode: '81-001', latitude: 54.4416, longitude: 18.5601,
       purchaseDuration: 12, entryFee: jr(200), subscriptionPrice: jr(80), amountBlocked: jr(400), maxPurchases: 20,
     },
@@ -184,16 +184,16 @@ export async function runSeed(prisma: PrismaClient) {
   // ---- Bonuses ----
   await prisma.program.create({
     data: {
-      name: 'Welcome Bonus Pack', isBonus: true, maxPurchases: 1000,
-      description: 'A starter bonus with discounted partner vouchers.',
+      name: 'Pakiet powitalny', isBonus: true, maxPurchases: 1000,
+      description: 'Startowy bonus z rabatowymi voucherami partnerskimi.',
       gracePeriod: 1, entryFee: jr(10), subscriptionPrice: jr(0), amountBlocked: jr(0),
       gallery: JSON.stringify([]),
     },
   });
   await prisma.program.create({
     data: {
-      name: 'Cinema Voucher Bonus', isBonus: true, maxPurchases: 200,
-      description: 'Redeemable cinema vouchers at partner networks.',
+      name: 'Bonus voucher do kina', isBonus: true, maxPurchases: 200,
+      description: 'Vouchery do kina do wykorzystania w sieciach partnerskich.',
       gracePeriod: 2, entryFee: jr(25), subscriptionPrice: jr(0), amountBlocked: jr(0),
       gallery: JSON.stringify([]),
     },
@@ -238,14 +238,14 @@ export async function runSeed(prisma: PrismaClient) {
   const rate = pln(1);
   const topUp = jr(1000);
   const p1 = await prisma.payment.create({ data: { clientId: partner.client!.id, type: 1, status: 2, value: Math.round((topUp / 100) * rate) } });
-  await prisma.transaction.create({ data: { clientId: partner.client!.id, type: 10, value: topUp, plnEquivalent: Math.round((topUp / 100) * rate), paymentId: p1.id, description: 'JR top-up' } });
+  await prisma.transaction.create({ data: { clientId: partner.client!.id, type: 10, value: topUp, plnEquivalent: Math.round((topUp / 100) * rate), paymentId: p1.id, description: 'Doładowanie JR' } });
 
   // Give Jan some JR and buy the FitLife Warsaw location
   const janTop = jr(500);
   const p2 = await prisma.payment.create({ data: { clientId: client.client!.id, type: 1, status: 2, value: Math.round((janTop / 100) * rate) } });
-  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 10, value: janTop, plnEquivalent: Math.round((janTop / 100) * rate), paymentId: p2.id, description: 'JR top-up' } });
+  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 10, value: janTop, plnEquivalent: Math.round((janTop / 100) * rate), paymentId: p2.id, description: 'Doładowanie JR' } });
   // Jan's top-up earns Anna a commission (3% at 1 downline)
-  await prisma.transaction.create({ data: { clientId: partner.client!.id, type: 50, value: Math.round(janTop * 0.03), plnEquivalent: Math.round((janTop * 0.03 / 100) * rate), partnerId: client.client!.id, description: 'Commission 3% from partner top-up' } });
+  await prisma.transaction.create({ data: { clientId: partner.client!.id, type: 50, value: Math.round(janTop * 0.03), plnEquivalent: Math.round((janTop * 0.03 / 100) * rate), partnerId: client.client!.id, description: 'Prowizja 3% z doładowania partnera' } });
 
   const now = new Date();
   const purchase = await prisma.purchase.create({
@@ -258,8 +258,8 @@ export async function runSeed(prisma: PrismaClient) {
       attributes: { create: [{ programAttributeId: plan.id, name: 'Standard', count: 1 }] },
     },
   });
-  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 20, value: jr(50), plnEquivalent: Math.round((jr(50) / 100) * rate), purchaseId: purchase.id, description: 'Program purchase' } });
-  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 70, value: jr(100), plnEquivalent: Math.round((jr(100) / 100) * rate), purchaseId: purchase.id, description: 'Frozen collateral' } });
+  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 20, value: jr(50), plnEquivalent: Math.round((jr(50) / 100) * rate), purchaseId: purchase.id, description: 'Zakup programu' } });
+  await prisma.transaction.create({ data: { clientId: client.client!.id, type: 70, value: jr(100), plnEquivalent: Math.round((jr(100) / 100) * rate), purchaseId: purchase.id, description: 'Zabezpieczenie (zamrożone)' } });
   await prisma.userClient.update({ where: { id: client.client!.id }, data: { anyProgramBought: true } });
 
   // A demo (unpaid access) client

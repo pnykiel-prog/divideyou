@@ -52,12 +52,12 @@ router.get('/bonuses', requireAdmin('BONUS'), wrap(async (_req, res) => {
 
 // POST /admin/programs, /admin/programs/bonus
 router.post('/', requireAdmin('PROGRAM', 2), wrap(async (req, res) => {
-  if (!req.body.name) throw badRequest('Name required');
+  if (!req.body.name) throw badRequest('Nazwa jest wymagana');
   const p = await prisma.program.create({ data: programData(req.body, false) });
   res.json(programDto(p));
 }));
 router.post('/bonus', requireAdmin('BONUS', 2), wrap(async (req, res) => {
-  if (!req.body.name) throw badRequest('Name required');
+  if (!req.body.name) throw badRequest('Nazwa jest wymagana');
   const p = await prisma.program.create({ data: programData(req.body, true) });
   res.json(programDto(p));
 }));
@@ -75,7 +75,7 @@ async function showProgram(req: any, res: any) {
       _count: { select: { purchases: true } },
     },
   });
-  if (!p) throw notFound('Program not found');
+  if (!p) throw notFound('Nie znaleziono programu');
   res.json({ ...programDto(p), electronicRules: p.electronicRules });
 }
 
@@ -85,7 +85,7 @@ router.post('/:id/bonus', requireAdmin('BONUS', 2), wrap((req, res) => editProgr
 
 async function editProgram(req: any, res: any, isBonus: boolean) {
   const existing = await prisma.program.findUnique({ where: { id: req.params.id } });
-  if (!existing) throw notFound('Program not found');
+  if (!existing) throw notFound('Nie znaleziono programu');
   const p = await prisma.program.update({ where: { id: req.params.id }, data: programData(req.body, isBonus) });
   res.json(programDto(p));
 }

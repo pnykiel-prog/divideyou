@@ -9,7 +9,7 @@ export default function Faq() {
 
   return (
     <div>
-      <div className="page-head"><h1>Frequently asked questions</h1></div>
+      <div className="page-head"><h1>Najczęściej zadawane pytania</h1></div>
       <div className="card">
         {items.map((f) => (
           <div key={f.id} style={{ borderBottom: '1px solid var(--border)' }}>
@@ -23,7 +23,7 @@ export default function Faq() {
             {open === f.id && <div className="muted" style={{ padding: '0 20px 18px' }}>{f.answer}</div>}
           </div>
         ))}
-        {items.length === 0 && <div className="empty">No questions yet.</div>}
+        {items.length === 0 && <div className="empty">Brak pytań.</div>}
       </div>
     </div>
   );

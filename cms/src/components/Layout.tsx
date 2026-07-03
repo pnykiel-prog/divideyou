@@ -9,18 +9,18 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: '/users', icon: '👥', label: 'Users', perm: 'USER_DATA' },
-  { to: '/users-cms', icon: '🛡️', label: 'Admins', perm: 'USER_DATA' },
-  { to: '/payments/pay-in', icon: '💳', label: 'Payments', perm: 'PAYMENT' },
-  { to: '/programs', icon: '📦', label: 'Programs', perm: 'PROGRAM' },
-  { to: '/bonuses', icon: '🎁', label: 'Bonuses', perm: 'BONUS' },
-  { to: '/parameters', icon: '⚙️', label: 'Parameters', perm: 'SETTINGS' },
-  { to: '/regulations', icon: '📜', label: 'Regulations', perm: 'TERMS' },
+  { to: '/users', icon: '👥', label: 'Użytkownicy', perm: 'USER_DATA' },
+  { to: '/users-cms', icon: '🛡️', label: 'Administratorzy', perm: 'USER_DATA' },
+  { to: '/payments/pay-in', icon: '💳', label: 'Płatności', perm: 'PAYMENT' },
+  { to: '/programs', icon: '📦', label: 'Programy', perm: 'PROGRAM' },
+  { to: '/bonuses', icon: '🎁', label: 'Bonusy', perm: 'BONUS' },
+  { to: '/parameters', icon: '⚙️', label: 'Parametry', perm: 'SETTINGS' },
+  { to: '/regulations', icon: '📜', label: 'Regulaminy', perm: 'TERMS' },
   { to: '/faq', icon: '❓', label: 'FAQ', perm: 'FAQ' },
-  { to: '/statistics', icon: '📊', label: 'Statistics', perm: 'STATISTICS' },
-  { to: '/news', icon: '📰', label: 'News', perm: 'NEWS' },
-  { to: '/system-partners', icon: '🤝', label: 'System Partners', perm: 'USER_PARTNERSHIP' },
-  { to: '/files', icon: '📁', label: 'Files', perm: 'FILES' },
+  { to: '/statistics', icon: '📊', label: 'Statystyki', perm: 'STATISTICS' },
+  { to: '/news', icon: '📰', label: 'Aktualności', perm: 'NEWS' },
+  { to: '/system-partners', icon: '🤝', label: 'Partnerzy systemowi', perm: 'USER_PARTNERSHIP' },
+  { to: '/files', icon: '📁', label: 'Pliki', perm: 'FILES' },
 ];
 
 export default function Layout() {
@@ -33,7 +33,7 @@ export default function Layout() {
           Divide<span>You</span> CMS
         </div>
         <div className="side-id">
-          Signed in as <b>{admin?.name || admin?.email}</b>
+          Zalogowano jako <b>{admin?.name || admin?.email}</b>
           {admin?.superAdmin && (
             <>
               {' '}
@@ -49,14 +49,14 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="side-foot">DivideYou CMS · admin panel</div>
+        <div className="side-foot">DivideYou CMS · panel administracyjny</div>
       </aside>
       <div className="main">
         <div className="topbar">
           <div className="spacer" />
           <span className="muted">{admin?.email}</span>
           <button className="btn ghost sm" onClick={logout}>
-            Logout
+            Wyloguj
           </button>
         </div>
         <div className="content">

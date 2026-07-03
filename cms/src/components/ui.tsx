@@ -16,11 +16,11 @@ export function Field({
 }
 
 export function Spinner() {
-  return <div className="spinner">Loading…</div>;
+  return <div className="spinner">Ładowanie…</div>;
 }
 
 export function Empty({ children }: { children?: ReactNode }) {
-  return <div className="empty">{children ?? 'Nothing here yet.'}</div>;
+  return <div className="empty">{children ?? 'Brak danych.'}</div>;
 }
 
 export function ErrorAlert({ error }: { error: any }) {
@@ -29,20 +29,20 @@ export function ErrorAlert({ error }: { error: any }) {
 }
 
 const PAYMENT_STATUS: Record<number, [string, string]> = {
-  1: ['Safe', 'green'],
-  2: ['Warning', 'amber'],
-  3: ['Danger', 'red'],
+  1: ['Bezpieczny', 'green'],
+  2: ['Ostrzeżenie', 'amber'],
+  3: ['Zagrożenie', 'red'],
 };
 export function PaymentStatusBadge({ status }: { status: number }) {
-  const [label, cls] = PAYMENT_STATUS[status] || ['Unknown', 'gray'];
+  const [label, cls] = PAYMENT_STATUS[status] || ['Nieznany', 'gray'];
   return <span className={`badge ${cls}`}>{label}</span>;
 }
 
 const TX_STATUS: Record<number, [string, string]> = {
-  0: ['Init', 'gray'],
-  1: ['Pending', 'amber'],
-  2: ['Accepted', 'green'],
-  3: ['Rejected', 'red'],
+  0: ['Inicjacja', 'gray'],
+  1: ['Oczekuje', 'amber'],
+  2: ['Zaakceptowana', 'green'],
+  3: ['Odrzucona', 'red'],
 };
 export function StatusBadge({ status }: { status: number }) {
   const [label, cls] = TX_STATUS[status] || [`#${status}`, 'gray'];
@@ -51,9 +51,9 @@ export function StatusBadge({ status }: { status: number }) {
 
 export function YesNo({ value }: { value: any }) {
   return value ? (
-    <span className="badge green">Yes</span>
+    <span className="badge green">Tak</span>
   ) : (
-    <span className="badge gray">No</span>
+    <span className="badge gray">Nie</span>
   );
 }
 
@@ -75,13 +75,13 @@ export function Pager({
       style={{ marginTop: 16, alignItems: 'center', justifyContent: 'flex-end' }}
     >
       <span className="muted" style={{ marginRight: 'auto' }}>
-        {total} total · page {page} / {pages}
+        Łącznie: {total} · strona {page} / {pages}
       </span>
       <button className="btn sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-        ← Prev
+        ← Poprzednia
       </button>
       <button className="btn sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>
-        Next →
+        Następna →
       </button>
     </div>
   );

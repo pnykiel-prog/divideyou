@@ -26,7 +26,7 @@ export default function Faq() {
   useEffect(load, [search]);
 
   const del = async (id: any) => {
-    if (!confirm('Delete this FAQ entry?')) return;
+    if (!confirm('Usunąć ten wpis FAQ?')) return;
     try {
       await api.del(`/admin/faq/${id}`);
       load();
@@ -47,13 +47,13 @@ export default function Faq() {
               setSearch(query);
             }}
           >
-            <input placeholder="Search…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ width: 200 }} />
+            <input placeholder="Szukaj…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ width: 200 }} />
             <button className="btn" type="submit">
-              Search
+              Szukaj
             </button>
           </form>
           <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-            + Add FAQ
+            + Dodaj FAQ
           </button>
         </div>
       </div>
@@ -64,14 +64,14 @@ export default function Faq() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No FAQ entries.</Empty>
+          <Empty>Brak wpisów FAQ.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Question</th>
-                <th>Order</th>
-                <th>Dashboard</th>
+                <th>Pytanie</th>
+                <th>Kolejność</th>
+                <th>Panel główny</th>
                 <th />
               </tr>
             </thead>
@@ -88,10 +88,10 @@ export default function Faq() {
                   </td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(f)}>
-                      Edit
+                      Edytuj
                     </button>
                     <button className="btn sm danger" onClick={() => del(f.id)}>
-                      Delete
+                      Usuń
                     </button>
                   </td>
                 </tr>
@@ -144,33 +144,33 @@ function FaqModal({ entry, onClose, onSaved }: { entry: any; onClose: () => void
   };
 
   return (
-    <Modal title={editing ? 'Edit FAQ' : 'Add FAQ'} onClose={onClose} wide>
+    <Modal title={editing ? 'Edytuj FAQ' : 'Dodaj FAQ'} onClose={onClose} wide>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
-        <Field label="Question">
+        <Field label="Pytanie">
           <input value={form.question || ''} onChange={(e) => set('question', e.target.value)} required />
         </Field>
-        <Field label="Answer">
+        <Field label="Odpowiedź">
           <textarea rows={4} value={form.answer || ''} onChange={(e) => set('answer', e.target.value)} />
         </Field>
         <div className="grid cols-2">
-          <Field label="Sort order">
+          <Field label="Kolejność sortowania">
             <input type="number" value={form.sortOrder ?? 0} onChange={(e) => set('sortOrder', e.target.value)} />
           </Field>
           <label className="field">
-            <span>On dashboard</span>
+            <span>Na panelu głównym</span>
             <select value={form.onDashboard ? '1' : '0'} onChange={(e) => set('onDashboard', e.target.value === '1')}>
-              <option value="0">No</option>
-              <option value="1">Yes</option>
+              <option value="0">Nie</option>
+              <option value="1">Tak</option>
             </select>
           </label>
         </div>
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save'}
+            {busy ? 'Zapisywanie…' : 'Zapisz'}
           </button>
         </div>
       </form>

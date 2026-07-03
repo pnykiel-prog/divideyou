@@ -19,7 +19,7 @@ export default function Login() {
       await login(email, password);
       nav('/users');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Logowanie nie powiodło się');
     } finally {
       setBusy(false);
     }
@@ -31,12 +31,12 @@ export default function Login() {
         <div className="brand">
           Divide<span>You</span>
         </div>
-        <div className="tag">CMS admin panel</div>
+        <div className="tag">Panel administracyjny CMS</div>
         {error && <div className="alert error">⚠ {error}</div>}
-        <Field label="Email">
+        <Field label="E-mail">
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
         </Field>
-        <Field label="Password">
+        <Field label="Hasło">
           <input
             type="password"
             value={password}
@@ -44,7 +44,7 @@ export default function Login() {
           />
         </Field>
         <button className="btn primary" type="submit" disabled={busy} style={{ width: '100%' }}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? 'Logowanie…' : 'Zaloguj się'}
         </button>
       </form>
     </div>

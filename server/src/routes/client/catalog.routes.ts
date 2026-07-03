@@ -57,7 +57,7 @@ router.get('/programs/:id', wrap(async (req, res) => {
       _count: { select: { purchases: true } },
     },
   });
-  if (!p) throw notFound('Program not found');
+  if (!p) throw notFound('Nie znaleziono programu');
   res.json(programDto(p));
 }));
 
@@ -106,7 +106,7 @@ router.get('/locations/:id', wrap(async (req, res) => {
     where: { id: req.params.id },
     include: { program: true, electronicRules: true },
   });
-  if (!l) throw notFound('Location not found');
+  if (!l) throw notFound('Nie znaleziono lokalizacji');
   const observed = await prisma.observedItem.findFirst({ where: { clientId: cid(req), locationId: l.id } });
   res.json({ ...locationDto(l), observed: !!observed, electronicRules: l.electronicRules });
 }));
@@ -132,7 +132,7 @@ router.get('/bonuses/:id', wrap(async (req, res) => {
     where: { id: req.params.id, isBonus: true },
     include: { electronicRules: true, _count: { select: { purchases: true } } },
   });
-  if (!b) throw notFound('Bonus not found');
+  if (!b) throw notFound('Nie znaleziono bonusu');
   const observed = await prisma.observedItem.findFirst({ where: { clientId: cid(req), programId: b.id } });
   res.json({ ...programDto(b), observed: !!observed, electronicRules: b.electronicRules });
 }));
@@ -150,7 +150,7 @@ async function attributesFor(req: any, res: any, kind: 'program' | 'location') {
 
 async function observe(req: any, res: any, kind: 'program' | 'location', on: boolean) {
   // Requires access fee paid (legacy rule).
-  if (!req.auth.client.accessFeePaid) throw badRequest('Full access required to observe');
+  if (!req.auth.client.accessFeePaid) throw badRequest('Do obserwowania wymagany jest pełny dostęp');
   const key = kind === 'program' ? { programId: req.params.id } : { locationId: req.params.id };
   const existing = await prisma.observedItem.findFirst({ where: { clientId: cid(req), ...key } });
   if (on && !existing) {

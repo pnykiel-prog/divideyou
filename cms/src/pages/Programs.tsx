@@ -26,7 +26,7 @@ export default function Programs() {
   useEffect(load, [search, vip]);
 
   const del = async (id: any) => {
-    if (!confirm('Delete this program?')) return;
+    if (!confirm('Usunąć ten program?')) return;
     try {
       await api.del(`/admin/programs/${id}`);
       load();
@@ -38,7 +38,7 @@ export default function Programs() {
   return (
     <div>
       <div className="page-head">
-        <h1>Programs</h1>
+        <h1>Programy</h1>
         <div className="btn-row">
           <form
             className="btn-row"
@@ -48,22 +48,22 @@ export default function Programs() {
             }}
           >
             <input
-              placeholder="Search…"
+              placeholder="Szukaj…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               style={{ width: 180 }}
             />
             <select value={vip} onChange={(e) => setVip(e.target.value)} style={{ width: 120 }}>
-              <option value="">All</option>
-              <option value="1">VIP only</option>
-              <option value="0">Non-VIP</option>
+              <option value="">Wszystkie</option>
+              <option value="1">Tylko VIP</option>
+              <option value="0">Bez VIP</option>
             </select>
             <button className="btn" type="submit">
-              Search
+              Szukaj
             </button>
           </form>
           <button className="btn primary" onClick={() => nav('/programs/edit')}>
-            + Add program
+            + Dodaj program
           </button>
         </div>
       </div>
@@ -74,18 +74,18 @@ export default function Programs() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No programs.</Empty>
+          <Empty>Brak programów.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Subscription</th>
-                <th>Entry fee</th>
-                <th>Purchases</th>
+                <th>Nazwa</th>
+                <th>Opis</th>
+                <th>Abonament</th>
+                <th>Opłata wstępna</th>
+                <th>Zakupy</th>
                 <th>VIP</th>
-                <th>Visible</th>
+                <th>Widoczny</th>
                 <th />
               </tr>
             </thead>
@@ -113,10 +113,10 @@ export default function Programs() {
                       style={{ marginRight: 6 }}
                       onClick={() => nav(`/programs/edit/${p.id}`)}
                     >
-                      Edit
+                      Edytuj
                     </button>
                     <button className="btn sm danger" onClick={() => del(p.id)}>
-                      Delete
+                      Usuń
                     </button>
                   </td>
                 </tr>

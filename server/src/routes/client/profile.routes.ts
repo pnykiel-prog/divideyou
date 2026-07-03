@@ -200,7 +200,7 @@ router.post('/password', wrap(async (req, res) => {
   const { oldPassword, password } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth.id } });
   if (!user || !(await verifyPassword(oldPassword || '', user.password))) {
-    throw badRequest('Current password is incorrect');
+    throw badRequest('Aktualne hasło jest nieprawidłowe');
   }
   await prisma.user.update({
     where: { id: req.auth.id },
@@ -213,9 +213,9 @@ router.post('/password', wrap(async (req, res) => {
 router.post('/delete', wrap(async (req, res) => {
   const { password } = req.body;
   const user = await prisma.user.findUnique({ where: { id: req.auth.id } });
-  if (!user || !(await verifyPassword(password || '', user.password))) throw badRequest('Password incorrect');
+  if (!user || !(await verifyPassword(password || '', user.password))) throw badRequest('Nieprawidłowe hasło');
   const w = await calculateWallet(cid(req));
-  if (w.active > 0) throw badRequest('You have active funds. Contact support to withdraw first.');
+  if (w.active > 0) throw badRequest('Masz aktywne środki. Skontaktuj się z pomocą, aby najpierw je wypłacić.');
   await prisma.user.update({
     where: { id: req.auth.id },
     data: { type: UserType.DELETED, blockedStatus: BlockedStatus.BY_ADMIN, authTokenSeq: { increment: 1 } },

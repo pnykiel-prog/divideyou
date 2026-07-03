@@ -4,13 +4,13 @@ import { useAuth } from '../auth';
 import { api, jr } from '../api';
 
 const links = [
-  { to: '/news', label: 'News', icon: '📰' },
-  { to: '/profile', label: 'Profile', icon: '👤' },
-  { to: '/wallet', label: 'Wallet', icon: '💰' },
-  { to: '/programs', label: 'Programs', icon: '🏢' },
-  { to: '/vip-programs', label: 'VIP Programs', icon: '⭐' },
-  { to: '/bonuses', label: 'Bonuses', icon: '🎁' },
-  { to: '/partnership', label: 'Partnership', icon: '🤝' },
+  { to: '/news', label: 'Aktualności', icon: '📰' },
+  { to: '/profile', label: 'Profil', icon: '👤' },
+  { to: '/wallet', label: 'Portfel', icon: '💰' },
+  { to: '/programs', label: 'Programy', icon: '🏢' },
+  { to: '/vip-programs', label: 'Programy VIP', icon: '⭐' },
+  { to: '/bonuses', label: 'Bonusy', icon: '🎁' },
+  { to: '/partnership', label: 'Program partnerski', icon: '🤝' },
   { to: '/faq', label: 'FAQ', icon: '❓' },
 ];
 
@@ -35,12 +35,12 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="brand">Divide<span>You</span></div>
         <div className="side-id">
-          My ID: <b className="copy" onClick={() => copy(user?.clientId || '')} title="Copy">
+          Moje ID: <b className="copy" onClick={() => copy(user?.clientId || '')} title="Kopiuj">
             {(user?.clientId || '').slice(0, 8)}…
           </b>
           {user?.partnerNumber && (
             <div style={{ marginTop: 4 }}>
-              Partner #: <b className="copy" onClick={() => copy(user.partnerNumber!)}>{user.partnerNumber}</b>
+              Partner nr: <b className="copy" onClick={() => copy(user.partnerNumber!)}>{user.partnerNumber}</b>
             </div>
           )}
         </div>
@@ -52,20 +52,20 @@ export default function Layout() {
           ))}
         </nav>
         <div className="side-foot">
-          Signed in as<br /><b>{user?.email}</b>
+          Zalogowano jako<br /><b>{user?.email}</b>
         </div>
       </aside>
 
       <div className="main">
         <header className="topbar">
           <strong style={{ fontSize: 16 }}>
-            {user?.companyName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Welcome'}
+            {user?.companyName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Witaj'}
           </strong>
           <div className="spacer" />
           <div className="wallet-chip" onClick={() => nav('/wallet')} style={{ cursor: 'pointer' }}>
             {jr(active)}
           </div>
-          <button className="btn sm" onClick={doLogout}>Logout</button>
+          <button className="btn sm" onClick={doLogout}>Wyloguj</button>
         </header>
         <div className="content">
           <Outlet />

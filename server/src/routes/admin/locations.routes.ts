@@ -28,9 +28,9 @@ const locationData = (b: any) => ({
 // POST /admin/locations — create under a program
 router.post('/', requireAdmin('PROGRAM', 2), wrap(async (req, res) => {
   const programId = req.body.programId;
-  if (!programId) throw badRequest('programId required');
+  if (!programId) throw badRequest('Wymagane programId');
   const program = await prisma.program.findUnique({ where: { id: programId } });
-  if (!program) throw notFound('Program not found');
+  if (!program) throw notFound('Nie znaleziono programu');
   const l = await prisma.location.create({ data: { programId, ...locationData(req.body) }, include: { program: true } });
   res.json(locationDto(l));
 }));
@@ -38,7 +38,7 @@ router.post('/', requireAdmin('PROGRAM', 2), wrap(async (req, res) => {
 // GET /admin/locations/:id
 router.get('/:id', requireAdmin('PROGRAM'), wrap(async (req, res) => {
   const l = await prisma.location.findUnique({ where: { id: req.params.id }, include: { program: true } });
-  if (!l) throw notFound('Location not found');
+  if (!l) throw notFound('Nie znaleziono lokalizacji');
   res.json(locationDto(l));
 }));
 

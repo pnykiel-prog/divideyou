@@ -39,6 +39,6 @@ export const api = {
 };
 
 export const jr = (n: number | undefined | null) =>
-  `${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} JR`;
+  `${(n ?? 0).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} JR`;
 export const pln = (n: number | undefined | null) =>
-  `${(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
+  `${(n ?? 0).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;

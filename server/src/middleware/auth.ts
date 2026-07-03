@@ -31,8 +31,8 @@ export async function loadUser(req: Request): Promise<AuthUser | null> {
     where: { id: payload.user_id },
     include: { client: true, admin: true },
   });
-  if (!user || user.type === UserType.DELETED) throw unauthorized('User not found');
-  if (payload.seq_no < user.authTokenSeq) throw unauthorized('Session expired');
+  if (!user || user.type === UserType.DELETED) throw unauthorized('Nie znaleziono użytkownika');
+  if (payload.seq_no < user.authTokenSeq) throw unauthorized('Sesja wygasła');
   return {
     id: user.id,
     email: user.email,
@@ -50,10 +50,10 @@ export function requireClient(...allowedRoles: string[]) {
     try {
       const u = await loadUser(req);
       if (!u) throw unauthorized();
-      if (u.type !== UserType.CLIENT) throw forbidden('Client account required');
-      if (u.raw.blockedStatus === BlockedStatus.BY_ADMIN) throw forbidden('Account blocked');
+      if (u.type !== UserType.CLIENT) throw forbidden('Wymagane konto klienta');
+      if (u.raw.blockedStatus === BlockedStatus.BY_ADMIN) throw forbidden('Konto zablokowane');
       if (allowedRoles.length && !allowedRoles.some((r) => u.roles.includes(r))) {
-        throw forbidden('Insufficient role');
+        throw forbidden('Niewystarczające uprawnienia');
       }
       req.auth = u;
       next();
@@ -80,11 +80,11 @@ export function requireAdmin(permissionKey?: string, level: number = PermissionL
     try {
       const u = await loadUser(req);
       if (!u) throw unauthorized();
-      if (u.type !== UserType.ADMIN) throw forbidden('Admin account required');
+      if (u.type !== UserType.ADMIN) throw forbidden('Wymagane konto administratora');
       if (permissionKey && !u.admin?.superAdmin) {
         const perms = JSON.parse(u.admin?.permissions || '{}');
         const has = perms[permissionKey] ?? 0;
-        if (has < level) throw forbidden('Insufficient permission: ' + permissionKey);
+        if (has < level) throw forbidden('Niewystarczające uprawnienie: ' + permissionKey);
       }
       req.auth = u;
       next();
@@ -99,7 +99,7 @@ export function requireSuperAdmin(req: Request, _res: Response, next: NextFuncti
   loadUser(req)
     .then((u) => {
       if (!u) throw unauthorized();
-      if (u.type !== UserType.ADMIN || !u.admin?.superAdmin) throw forbidden('Super admin required');
+      if (u.type !== UserType.ADMIN || !u.admin?.superAdmin) throw forbidden('Wymagane konto superadministratora');
       req.auth = u;
       next();
     })

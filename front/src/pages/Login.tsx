@@ -18,7 +18,7 @@ export default function Login() {
       await login(email, password);
       nav('/news');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Logowanie nie powiodło się');
     } finally {
       setBusy(false);
     }
@@ -28,24 +28,24 @@ export default function Login() {
     <div className="auth-wrap">
       <div className="auth-card">
         <div className="brand">Divide<span>You</span></div>
-        <div className="tag">Sign in to your account</div>
+        <div className="tag">Zaloguj się do swojego konta</div>
         <div className="card pad">
           <form onSubmit={submit}>
             {error && <div className="alert error">{error}</div>}
             <label className="field">
-              <span>Email</span>
+              <span>E-mail</span>
               <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
             </label>
             <label className="field">
-              <span>Password</span>
+              <span>Hasło</span>
               <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
             </label>
             <button className="btn primary" style={{ width: '100%' }} disabled={busy}>
-              {busy ? 'Signing in…' : 'Sign in'}
+              {busy ? 'Logowanie…' : 'Zaloguj się'}
             </button>
           </form>
           <div style={{ marginTop: 16, textAlign: 'center' }} className="muted">
-            No account? <Link to="/register">Register</Link>
+            Nie masz konta? <Link to="/register">Zarejestruj się</Link>
           </div>
           <div style={{ marginTop: 18, fontSize: 12 }} className="muted">
             Demo: jan@divideyou.test / Password1 · anna@divideyou.test (partner)

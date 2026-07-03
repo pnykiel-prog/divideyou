@@ -11,14 +11,14 @@ export default function Profile() {
     api.get('/profile/warnings').then(setWarnings).catch(() => {});
   }, []);
 
-  if (!data) return <div className="spinner">Loading…</div>;
+  if (!data) return <div className="spinner">Ładowanie…</div>;
   const w = data.wallet;
 
   return (
     <div>
       <div className="page-head">
-        <h1>Profile</h1>
-        <Link className="btn" to="/settings">Edit settings</Link>
+        <h1>Profil</h1>
+        <Link className="btn" to="/settings">Edytuj ustawienia</Link>
       </div>
 
       {warnings.map((warn, i) => (
@@ -27,58 +27,58 @@ export default function Profile() {
 
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
         <div className="stat accent">
-          <div className="label">Active balance</div>
+          <div className="label">Aktywne saldo</div>
           <div className="value">{jr(w.active)}</div>
           <div className="sub">{pln(w.activePln)}</div>
         </div>
         <div className="stat">
-          <div className="label">Pending</div>
+          <div className="label">Oczekujące</div>
           <div className="value">{jr(w.pending)}</div>
         </div>
         <div className="stat">
-          <div className="label">Available to payout</div>
+          <div className="label">Do wypłaty</div>
           <div className="value">{jr(w.toPayout)}</div>
           <div className="sub">{pln(w.toPayoutPln)}</div>
         </div>
         <div className="stat">
-          <div className="label">Blocked (collateral)</div>
+          <div className="label">Zablokowane (zabezpieczenie)</div>
           <div className="value">{jr(w.blocked)}</div>
         </div>
       </div>
 
       <div className="grid cols-2">
         <div className="card pad">
-          <h3>My programs</h3>
-          {data.purchases.length === 0 && <div className="muted">You have no active programs yet. <Link to="/programs">Browse programs</Link></div>}
+          <h3>Moje programy</h3>
+          {data.purchases.length === 0 && <div className="muted">Nie masz jeszcze aktywnych programów. <Link to="/programs">Przeglądaj programy</Link></div>}
           {data.purchases.map((p: any) => (
             <div className="list-row" key={p.id}>
               <div style={{ flex: 1 }}>
                 <strong>{p.location?.name || p.program?.name}</strong>
                 <div className="muted" style={{ fontSize: 12 }}>
-                  {p.isBonus ? 'Bonus' : p.location?.programName} · subscription {jr(p.subscriptionFee)}/mo
+                  {p.isBonus ? 'Bonus' : p.location?.programName} · abonament {jr(p.subscriptionFee)}/mies.
                 </div>
               </div>
-              <Link className="btn sm" to={p.isBonus ? `/bonus/${p.program?.id}` : `/location/${p.location?.id}`}>Open</Link>
+              <Link className="btn sm" to={p.isBonus ? `/bonus/${p.program?.id}` : `/location/${p.location?.id}`}>Otwórz</Link>
             </div>
           ))}
         </div>
 
         <div>
           <div className="card pad" style={{ marginBottom: 16 }}>
-            <h3>Partnership</h3>
-            <div className="muted">You have <b>{data.partnersCount}</b> referred partner(s).</div>
-            <div style={{ marginTop: 10 }}><Link className="btn sm" to="/partnership">Go to partnership</Link></div>
+            <h3>Program partnerski</h3>
+            <div className="muted">Masz <b>{data.partnersCount}</b> poleconych partnerów.</div>
+            <div style={{ marginTop: 10 }}><Link className="btn sm" to="/partnership">Przejdź do programu partnerskiego</Link></div>
           </div>
           <div className="card pad">
-            <h3>Recent activity</h3>
-            {data.recentTransactions.length === 0 && <div className="muted">No transactions yet.</div>}
+            <h3>Ostatnia aktywność</h3>
+            {data.recentTransactions.length === 0 && <div className="muted">Brak transakcji.</div>}
             {data.recentTransactions.map((t: any) => (
               <div className="list-row" key={t.id}>
                 <div style={{ flex: 1 }}>{txLabel(t.type)}</div>
                 <strong>{jr(t.value)}</strong>
               </div>
             ))}
-            <div style={{ marginTop: 10 }}><Link className="btn sm" to="/wallet/payments">View all</Link></div>
+            <div style={{ marginTop: 10 }}><Link className="btn sm" to="/wallet/payments">Zobacz wszystkie</Link></div>
           </div>
         </div>
       </div>
@@ -88,24 +88,24 @@ export default function Profile() {
 
 function WarningBanner({ warn }: { warn: any }) {
   if (warn.type === 'demo')
-    return <div className="alert warn">⏳ Your demo access ends in {Math.max(0, warn.daysLeft)} day(s). <Link to="/wallet/state">Buy full access</Link>.</div>;
+    return <div className="alert warn">⏳ Twój dostęp demo kończy się za {Math.max(0, warn.daysLeft)} dni. <Link to="/wallet/state">Kup pełny dostęp</Link>.</div>;
   if (warn.type === 'agreements')
-    return <div className="alert warn">📝 Please review and accept the updated agreements in <Link to="/settings/agreements">settings</Link>.</div>;
+    return <div className="alert warn">📝 Przejrzyj i zaakceptuj zaktualizowane zgody w <Link to="/settings/agreements">ustawieniach</Link>.</div>;
   if (warn.type === 'missing_payments')
-    return <div className="alert warn">💳 You have {warn.count} overdue subscription payment(s).</div>;
+    return <div className="alert warn">💳 Masz {warn.count} zaległych płatności abonamentowych.</div>;
   if (warn.type === 'missing_funds')
-    return <div className="alert warn">⚠️ Insufficient funds for subscriptions — top up {jr(warn.missing)}. <Link to="/wallet/state">Buy JR</Link>.</div>;
+    return <div className="alert warn">⚠️ Niewystarczające środki na abonamenty — doładuj {jr(warn.missing)}. <Link to="/wallet/state">Kup JR</Link>.</div>;
   if (warn.type === 'pending_payments')
-    return <div className="alert info">ℹ️ You have {warn.count} payment(s) awaiting processing.</div>;
+    return <div className="alert info">ℹ️ Masz {warn.count} płatności oczekujących na przetworzenie.</div>;
   return null;
 }
 
 export function txLabel(type: number) {
   const map: Record<number, string> = {
-    1: 'Access fee', 10: 'JR top-up', 11: 'JR top-up (online)', 20: 'Program purchase',
-    21: 'Bonus purchase', 30: 'Admin JR credit', 31: 'Request credit', 40: 'Subscription fee',
-    50: 'Partnership commission', 60: 'JR payout', 61: 'Commission payout', 62: 'Return payout',
-    70: 'Frozen collateral', 100: 'Cancellation',
+    1: 'Opłata za dostęp', 10: 'Doładowanie JR', 11: 'Doładowanie JR (online)', 20: 'Zakup programu',
+    21: 'Zakup bonusu', 30: 'Uznanie JR przez administratora', 31: 'Uznanie na wniosek', 40: 'Opłata abonamentowa',
+    50: 'Prowizja partnerska', 60: 'Wypłata JR', 61: 'Wypłata prowizji', 62: 'Wypłata zwrotu',
+    70: 'Zamrożone zabezpieczenie', 100: 'Anulowanie',
   };
-  return map[type] || `Transaction #${type}`;
+  return map[type] || `Transakcja #${type}`;
 }

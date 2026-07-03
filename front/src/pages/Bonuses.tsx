@@ -15,13 +15,13 @@ export default function Bonuses() {
 
   return (
     <div>
-      <div className="page-head"><h1>Bonuses</h1></div>
+      <div className="page-head"><h1>Bonusy</h1></div>
       <div className="tabs">
-        <NavLink to="/bonuses/available" className={tab === 'available' ? 'active' : ''}>Available</NavLink>
-        <NavLink to="/bonuses/my" className={tab === 'my' ? 'active' : ''}>My bonuses</NavLink>
+        <NavLink to="/bonuses/available" className={tab === 'available' ? 'active' : ''}>Dostępne</NavLink>
+        <NavLink to="/bonuses/my" className={tab === 'my' ? 'active' : ''}>Moje bonusy</NavLink>
       </div>
-      {loading ? <div className="spinner">Loading…</div> : items.length === 0 ? (
-        <div className="empty">No bonuses found.</div>
+      {loading ? <div className="spinner">Ładowanie…</div> : items.length === 0 ? (
+        <div className="empty">Nie znaleziono bonusów.</div>
       ) : (
         <div className="grid cols-3">
           {items.map((b) => (

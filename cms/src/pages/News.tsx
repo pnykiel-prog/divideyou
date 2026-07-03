@@ -22,7 +22,7 @@ export default function News() {
   useEffect(load, []);
 
   const del = async (id: any) => {
-    if (!confirm('Delete this news item?')) return;
+    if (!confirm('Usunąć tę aktualność?')) return;
     try {
       await api.del(`/admin/news/${id}`);
       load();
@@ -34,9 +34,9 @@ export default function News() {
   return (
     <div>
       <div className="page-head">
-        <h1>News</h1>
+        <h1>Aktualności</h1>
         <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-          + Add news
+          + Dodaj aktualność
         </button>
       </div>
 
@@ -46,14 +46,14 @@ export default function News() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No news.</Empty>
+          <Empty>Brak aktualności.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Content</th>
-                <th>Date</th>
+                <th>Tytuł</th>
+                <th>Treść</th>
+                <th>Data</th>
                 <th />
               </tr>
             </thead>
@@ -69,10 +69,10 @@ export default function News() {
                   <td>{date(n.createdAt)}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(n)}>
-                      Edit
+                      Edytuj
                     </button>
                     <button className="btn sm danger" onClick={() => del(n.id)}>
-                      Delete
+                      Usuń
                     </button>
                   </td>
                 </tr>
@@ -120,24 +120,24 @@ function NewsModal({ entry, onClose, onSaved }: { entry: any; onClose: () => voi
   };
 
   return (
-    <Modal title={editing ? 'Edit news' : 'Add news'} onClose={onClose} wide>
+    <Modal title={editing ? 'Edytuj aktualność' : 'Dodaj aktualność'} onClose={onClose} wide>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
-        <Field label="Title">
+        <Field label="Tytuł">
           <input value={form.title || ''} onChange={(e) => set('title', e.target.value)} required />
         </Field>
-        <Field label="Content">
+        <Field label="Treść">
           <textarea rows={6} value={form.content || ''} onChange={(e) => set('content', e.target.value)} />
         </Field>
-        <Field label="Photo URL">
+        <Field label="Adres URL zdjęcia">
           <input value={form.photo || ''} onChange={(e) => set('photo', e.target.value)} />
         </Field>
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save'}
+            {busy ? 'Zapisywanie…' : 'Zapisz'}
           </button>
         </div>
       </form>

@@ -21,19 +21,19 @@ export default function Programs({ vip }: { vip: boolean }) {
   return (
     <div>
       <div className="page-head">
-        <h1>{vip ? 'VIP Programs' : 'Programs'}</h1>
+        <h1>{vip ? 'Programy VIP' : 'Programy'}</h1>
         {tab === 'available' && (
-          <input placeholder="Search programs…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
+          <input placeholder="Szukaj programów…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
         )}
       </div>
       <div className="tabs">
-        <NavLink to={`${base}/available`} className={tab === 'available' ? 'active' : ''}>Available</NavLink>
-        <NavLink to={`${base}/my`} className={tab === 'my' ? 'active' : ''}>My programs</NavLink>
-        {!vip && <NavLink to={`${base}/observed`} className={tab === 'observed' ? 'active' : ''}>Observed</NavLink>}
+        <NavLink to={`${base}/available`} className={tab === 'available' ? 'active' : ''}>Dostępne</NavLink>
+        <NavLink to={`${base}/my`} className={tab === 'my' ? 'active' : ''}>Moje programy</NavLink>
+        {!vip && <NavLink to={`${base}/observed`} className={tab === 'observed' ? 'active' : ''}>Obserwowane</NavLink>}
       </div>
 
-      {loading ? <div className="spinner">Loading…</div> : items.length === 0 ? (
-        <div className="empty">No programs found.</div>
+      {loading ? <div className="spinner">Ładowanie…</div> : items.length === 0 ? (
+        <div className="empty">Nie znaleziono programów.</div>
       ) : (
         <div className="grid cols-3">
           {items.map((p) => (
@@ -55,9 +55,9 @@ function ProgramCard({ p, myTab }: { p: any; myTab: boolean }) {
         <h3 style={{ marginBottom: 4 }}>{p.name}</h3>
         <p className="muted" style={{ fontSize: 13, minHeight: 38 }}>{(p.description || '').slice(0, 90)}</p>
         <div className="btn-row" style={{ marginTop: 6 }}>
-          {p.recommended && <span className="badge blue">Recommended</span>}
+          {p.recommended && <span className="badge blue">Polecane</span>}
           {p.vip && <span className="badge amber">VIP</span>}
-          {p.subscriptionPrice != null && <span className="badge gray">{jr(p.subscriptionPrice)}/mo</span>}
+          {p.subscriptionPrice != null && <span className="badge gray">{jr(p.subscriptionPrice)}/mies.</span>}
         </div>
       </div>
     </Link>

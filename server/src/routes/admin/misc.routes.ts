@@ -15,21 +15,21 @@ router.get('/purchases/:id', requireAdmin('PROGRAM'), wrap(async (req, res) => {
     where: { id: req.params.id },
     include: { program: true, location: { include: { program: true } }, attributes: true, userClient: { include: { user: true } } },
   });
-  if (!p) throw notFound('Purchase not found');
+  if (!p) throw notFound('Nie znaleziono zakupu');
   res.json({ ...purchaseDto(p), client: { id: p.userClient.id, email: p.userClient.user.email } });
 }));
 
 // POST /admin/purchases/:id/cancellation — cancel a purchase, optionally returning JR
 router.post('/purchases/:id/cancellation', requireAdmin('USER_PROGRAM', 2), wrap(async (req, res) => {
   const p = await prisma.purchase.findUnique({ where: { id: req.params.id } });
-  if (!p) throw notFound('Purchase not found');
+  if (!p) throw notFound('Nie znaleziono zakupu');
   const returnJr = req.body.return_jr === true || req.body.return_jr === 'true' || req.body.returnJr === true;
   await logTransaction({
     clientId: p.userClientId,
     type: TransactionType.CANCELLATION,
     value: 0,
     purchaseId: p.id,
-    description: 'Cancelled by admin' + (returnJr ? ' (JR returned)' : ''),
+    description: 'Anulowane przez administratora' + (returnJr ? ' (JR zwrócone)' : ''),
   });
   if (returnJr && p.price > 0) {
     await logTransaction({
@@ -37,7 +37,7 @@ router.post('/purchases/:id/cancellation', requireAdmin('USER_PROGRAM', 2), wrap
       type: TransactionType.ACCOUNT_DONATION,
       value: p.price,
       purchaseId: p.id,
-      description: 'Refund on admin cancellation',
+      description: 'Zwrot przy anulowaniu przez administratora',
     });
   }
   await prisma.purchase.update({
@@ -51,7 +51,7 @@ router.post('/purchases/:id/cancellation', requireAdmin('USER_PROGRAM', 2), wrap
 // ---------------- Transactions (admin) ----------------
 router.post('/transactions/:id/cancel', requireAdmin('PAYMENT', 2), wrap(async (req, res) => {
   const t = await prisma.transaction.findUnique({ where: { id: req.params.id } });
-  if (!t) throw notFound('Transaction not found');
+  if (!t) throw notFound('Nie znaleziono transakcji');
   await prisma.transaction.update({ where: { id: t.id }, data: { cancelled: true } });
   await refreshClientDenormalized(t.clientId);
   res.json({ ok: true });
@@ -128,7 +128,7 @@ router.get('/statistics/popular-locations', requireAdmin('STATISTICS'), wrap(asy
   const withNames = [];
   for (const g of grouped) {
     const loc = await prisma.location.findUnique({ where: { id: g.locationId! } });
-    withNames.push({ name: loc?.name ?? 'Unknown', count: g._count.locationId });
+    withNames.push({ name: loc?.name ?? 'Nieznana', count: g._count.locationId });
   }
   res.json(withNames.sort((a, b) => b.count - a.count).slice(0, 10));
 }));

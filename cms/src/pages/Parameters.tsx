@@ -3,14 +3,14 @@ import { api } from '../api';
 import { Spinner, Field, ErrorAlert } from '../components/ui';
 
 const SETTING_FIELDS: [string, string][] = [
-  ['demoAccessDays', 'Demo access (days)'],
-  ['accessPrice', 'Access price'],
-  ['jrExchangeRate', 'JR exchange rate'],
-  ['jrWithdrawalPeriodDays', 'JR withdrawal period (days)'],
-  ['jrProtectionPeriodDays', 'JR protection period (days)'],
-  ['minJrForVip', 'Min JR for VIP'],
-  ['minJrForBonus', 'Min JR for bonus'],
-  ['partnerTerm', 'Partner term'],
+  ['demoAccessDays', 'Dostęp demo (dni)'],
+  ['accessPrice', 'Opłata za dostęp'],
+  ['jrExchangeRate', 'Kurs wymiany JR'],
+  ['jrWithdrawalPeriodDays', 'Okres wypłaty JR (dni)'],
+  ['jrProtectionPeriodDays', 'Okres ochrony JR (dni)'],
+  ['minJrForVip', 'Min JR dla VIP'],
+  ['minJrForBonus', 'Min JR dla bonusu'],
+  ['partnerTerm', 'Termin partnera'],
 ];
 
 export default function Parameters() {
@@ -53,7 +53,7 @@ export default function Parameters() {
           value: Number(t.value),
         })),
       });
-      setMsg('Saved');
+      setMsg('Zapisano');
       load();
     } catch (err: any) {
       setError(err);
@@ -67,9 +67,9 @@ export default function Parameters() {
   return (
     <div>
       <div className="page-head">
-        <h1>Parameters</h1>
+        <h1>Parametry</h1>
         <button className="btn primary" onClick={save} disabled={busy}>
-          {busy ? 'Saving…' : 'Save all'}
+          {busy ? 'Zapisywanie…' : 'Zapisz wszystko'}
         </button>
       </div>
 
@@ -77,7 +77,7 @@ export default function Parameters() {
       <ErrorAlert error={error} />
 
       <div className="card pad" style={{ marginBottom: 20 }}>
-        <h3>Settings</h3>
+        <h3>Ustawienia</h3>
         <div className="grid cols-2">
           {SETTING_FIELDS.map(([k, label]) => (
             <Field key={k} label={label}>
@@ -89,20 +89,20 @@ export default function Parameters() {
 
       <div className="card">
         <div className="pad" style={{ paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-          <h3>Global commission thresholds</h3>
+          <h3>Globalne progi prowizji</h3>
           <button
             className="btn sm"
             onClick={() => setThresholds((ts) => [...ts, { lowLimit: 0, highLimit: 0, value: 0 }])}
           >
-            + Add
+            + Dodaj
           </button>
         </div>
         <table>
           <thead>
             <tr>
-              <th>Low limit</th>
-              <th>High limit</th>
-              <th>Value %</th>
+              <th>Dolny limit</th>
+              <th>Górny limit</th>
+              <th>Wartość %</th>
               <th />
             </tr>
           </thead>
@@ -123,7 +123,7 @@ export default function Parameters() {
                     className="btn sm danger"
                     onClick={() => setThresholds((ts) => ts.filter((_, idx) => idx !== i))}
                   >
-                    Remove
+                    Usuń
                   </button>
                 </td>
               </tr>

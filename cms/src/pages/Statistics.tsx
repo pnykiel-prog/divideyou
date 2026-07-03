@@ -3,20 +3,20 @@ import { api } from '../api';
 import { Spinner, Empty, ErrorAlert } from '../components/ui';
 
 const COUNT_TILES: [string, string][] = [
-  ['users', 'Users'],
-  ['admins', 'Admins'],
-  ['programs', 'Programs'],
-  ['bonuses', 'Bonuses'],
-  ['locations', 'Locations'],
-  ['purchases', 'Purchases'],
-  ['activePurchases', 'Active purchases'],
+  ['users', 'Użytkownicy'],
+  ['admins', 'Administratorzy'],
+  ['programs', 'Programy'],
+  ['bonuses', 'Bonusy'],
+  ['locations', 'Lokalizacje'],
+  ['purchases', 'Zakupy'],
+  ['activePurchases', 'Aktywne zakupy'],
 ];
 
 const SERIES: { key: string; label: string; endpoint: string }[] = [
-  { key: 'registrations', label: 'Registrations', endpoint: 'registrations' },
-  { key: 'purchases-program', label: 'Program purchases', endpoint: 'purchases-program' },
-  { key: 'purchases-bonus', label: 'Bonus purchases', endpoint: 'purchases-bonus' },
-  { key: 'purchases-jr', label: 'JR purchases', endpoint: 'purchases-jr' },
+  { key: 'registrations', label: 'Rejestracje', endpoint: 'registrations' },
+  { key: 'purchases-program', label: 'Zakupy programów', endpoint: 'purchases-program' },
+  { key: 'purchases-bonus', label: 'Zakupy bonusów', endpoint: 'purchases-bonus' },
+  { key: 'purchases-jr', label: 'Zakupy JR', endpoint: 'purchases-jr' },
 ];
 
 function iso(d: Date) {
@@ -64,7 +64,7 @@ export default function Statistics() {
   return (
     <div>
       <div className="page-head">
-        <h1>Statistics</h1>
+        <h1>Statystyki</h1>
       </div>
 
       <ErrorAlert error={error} />
@@ -81,11 +81,11 @@ export default function Statistics() {
       <div className="card pad" style={{ marginBottom: 24 }}>
         <div className="btn-row" style={{ alignItems: 'flex-end' }}>
           <label className="field" style={{ marginBottom: 0 }}>
-            <span>From</span>
+            <span>Od</span>
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           </label>
           <label className="field" style={{ marginBottom: 0 }}>
-            <span>To</span>
+            <span>Do</span>
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </label>
         </div>
@@ -102,16 +102,16 @@ export default function Statistics() {
 
       <div className="card">
         <div className="pad" style={{ paddingBottom: 0 }}>
-          <h3>Popular locations</h3>
+          <h3>Popularne lokalizacje</h3>
         </div>
         {popular.length === 0 ? (
-          <Empty>No data.</Empty>
+          <Empty>Brak danych.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Location</th>
-                <th>Count</th>
+                <th>Lokalizacja</th>
+                <th>Liczba</th>
               </tr>
             </thead>
             <tbody>
@@ -132,14 +132,14 @@ export default function Statistics() {
 }
 
 function BarChart({ data }: { data: any[] }) {
-  if (!data || data.length === 0) return <Empty>No data for range.</Empty>;
+  if (!data || data.length === 0) return <Empty>Brak danych dla zakresu.</Empty>;
   const max = Math.max(1, ...data.map((d) => d.count || 0));
   const total = data.reduce((s, d) => s + (d.count || 0), 0);
   const w = 100 / data.length;
   return (
     <div>
       <div className="muted" style={{ marginBottom: 8 }}>
-        Total: {total}
+        Łącznie: {total}
       </div>
       <svg viewBox="0 0 100 40" preserveAspectRatio="none" style={{ width: '100%', height: 120 }}>
         {data.map((d, i) => {

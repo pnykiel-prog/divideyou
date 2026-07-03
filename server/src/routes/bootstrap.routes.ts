@@ -10,14 +10,14 @@ const router = Router();
 //   GET/POST /api/bootstrap?secret=YOUR_SECRET[&force=1]
 async function handler(req: any, res: any) {
   const secret = process.env.SEED_SECRET;
-  if (!secret) throw forbidden('Bootstrap disabled: SEED_SECRET is not configured');
+  if (!secret) throw forbidden('Bootstrap wyłączony: SEED_SECRET nie jest skonfigurowany');
   const provided = req.query.secret || req.header('x-seed-secret');
-  if (provided !== secret) throw forbidden('Invalid bootstrap secret');
+  if (provided !== secret) throw forbidden('Nieprawidłowy sekret bootstrap');
 
   const existing = await prisma.user.count();
   const force = req.query.force === '1' || req.query.force === 'true';
   if (existing > 0 && !force) {
-    return res.json({ ok: true, seeded: false, message: `Database already has ${existing} users. Pass force=1 to re-seed.` });
+    return res.json({ ok: true, seeded: false, message: `Baza zawiera już ${existing} użytkowników. Dodaj force=1, aby zasiać ponownie.` });
   }
 
   await runSeed(prisma);

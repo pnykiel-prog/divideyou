@@ -47,8 +47,8 @@ router.get('/requests', requireAdmin('PAYMENT'), wrap(async (req, res) => {
 router.patch('/:id/set-status', requireAdmin('PAYMENT', 2), wrap(async (req, res) => {
   const status = Number(req.body.status);
   const payment = await prisma.payment.findUnique({ where: { id: req.params.id } });
-  if (!payment) throw notFound('Payment not found');
-  if (payment.status === PaymentStatus.ACCEPTED) throw badRequest('Payment already accepted');
+  if (!payment) throw notFound('Nie znaleziono płatności');
+  if (payment.status === PaymentStatus.ACCEPTED) throw badRequest('Płatność już zaakceptowana');
   await prisma.payment.update({ where: { id: payment.id }, data: { status } });
   await refreshClientDenormalized(payment.clientId);
   res.json({ ok: true });
@@ -58,7 +58,7 @@ router.patch('/:id/set-status', requireAdmin('PAYMENT', 2), wrap(async (req, res
 router.post('/set-request-status', requireAdmin('PAYMENT', 2), wrap(async (req, res) => {
   const status = Number(req.body.status);
   const request = await prisma.clientRequest.findUnique({ where: { id: req.body.request }, include: { transaction: true } });
-  if (!request) throw notFound('Request not found');
+  if (!request) throw notFound('Nie znaleziono wniosku');
   await prisma.clientRequest.update({ where: { id: request.id }, data: { status } });
   if (status === RequestStatus.REJECTED && request.transaction) {
     await prisma.transaction.update({ where: { id: request.transaction.id }, data: { cancelled: true } });

@@ -20,7 +20,7 @@ export default function SystemPartners() {
   return (
     <div>
       <div className="page-head">
-        <h1>System Partners</h1>
+        <h1>Partnerzy systemowi</h1>
       </div>
 
       <ErrorAlert error={error} />
@@ -29,17 +29,17 @@ export default function SystemPartners() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No system partners.</Empty>
+          <Empty>Brak partnerów systemowych.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Partner #</th>
-                <th>Email</th>
-                <th>Referred</th>
-                <th>Commission %</th>
-                <th>To commission payout</th>
-                <th>Custom</th>
+                <th>Nr partnera</th>
+                <th>E-mail</th>
+                <th>Polecenia</th>
+                <th>Prowizja %</th>
+                <th>Do wypłaty prowizji</th>
+                <th>Niestandardowa</th>
               </tr>
             </thead>
             <tbody>

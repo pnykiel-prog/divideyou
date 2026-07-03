@@ -77,6 +77,6 @@ export async function payPartnershipCommission(client: {
     type: TransactionType.PARTNERSHIP_COMMISSION_INCOME,
     value: commission,
     partnerId: client.id,
-    description: `Commission ${percent}% from partner top-up`,
+    description: `Prowizja ${percent}% z doładowania partnera`,
   });
 }

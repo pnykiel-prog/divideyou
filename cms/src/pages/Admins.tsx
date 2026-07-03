@@ -26,10 +26,10 @@ export default function Admins() {
   return (
     <div>
       <div className="page-head">
-        <h1>CMS Admins</h1>
+        <h1>Administratorzy CMS</h1>
         {admin?.superAdmin && (
           <button className="btn primary" onClick={() => setShowAdd(true)}>
-            + Add user
+            + Dodaj użytkownika
           </button>
         )}
       </div>
@@ -40,16 +40,16 @@ export default function Admins() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No admins found.</Empty>
+          <Empty>Nie znaleziono administratorów.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Super admin</th>
-                <th>Last login</th>
+                <th>Imię</th>
+                <th>E-mail</th>
+                <th>Telefon</th>
+                <th>Super administrator</th>
+                <th>Ostatnie logowanie</th>
               </tr>
             </thead>
             <tbody>
@@ -114,48 +114,48 @@ function AddUserModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   };
 
   return (
-    <Modal title="Add user" onClose={onClose} wide>
+    <Modal title="Dodaj użytkownika" onClose={onClose} wide>
       <form onSubmit={submit}>
         <ErrorAlert error={error} />
-        <Field label="Account type">
+        <Field label="Typ konta">
           <select value={type} onChange={(e) => setType(Number(e.target.value))}>
-            <option value={1}>Client</option>
-            <option value={2}>CMS admin</option>
+            <option value={1}>Klient</option>
+            <option value={2}>Administrator CMS</option>
           </select>
         </Field>
         <div className="grid cols-2">
-          <Field label="Email">
+          <Field label="E-mail">
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </Field>
-          <Field label="Password">
+          <Field label="Hasło">
             <input value={password} onChange={(e) => setPassword(e.target.value)} required />
           </Field>
         </div>
         <div className="grid cols-2">
-          <Field label="First name">
+          <Field label="Imię">
             <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           </Field>
-          <Field label="Last name">
+          <Field label="Nazwisko">
             <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </Field>
         </div>
         <div className="grid cols-2">
-          <Field label="Name (display)">
+          <Field label="Nazwa (wyświetlana)">
             <input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
-          <Field label="Phone">
+          <Field label="Telefon">
             <input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </Field>
         </div>
         {type === 1 && (
-          <Field label="Company name">
+          <Field label="Nazwa firmy">
             <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
           </Field>
         )}
         {type === 2 && (
           <div style={{ marginBottom: 14 }}>
             <span style={{ fontWeight: 600, fontSize: 13, display: 'block', marginBottom: 8 }}>
-              Permissions
+              Uprawnienia
             </span>
             <div className="card">
               <table>
@@ -186,10 +186,10 @@ function AddUserModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         )}
         <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 8 }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Create user'}
+            {busy ? 'Zapisywanie…' : 'Utwórz użytkownika'}
           </button>
         </div>
       </form>

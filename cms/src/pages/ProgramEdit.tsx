@@ -59,7 +59,7 @@ export default function ProgramEdit() {
       };
       if (editing) {
         await api.post(`/admin/programs/${id}`, body);
-        setMsg('Saved');
+        setMsg('Zapisano');
       } else {
         const r = await api.post('/admin/programs', body);
         nav(`/programs/edit/${r.id ?? r.programId ?? ''}`);
@@ -78,9 +78,9 @@ export default function ProgramEdit() {
       <div className="page-head">
         <div>
           <Link to="/programs" className="muted">
-            ← Programs
+            ← Programy
           </Link>
-          <h1 style={{ marginTop: 6 }}>{editing ? 'Edit program' : 'New program'}</h1>
+          <h1 style={{ marginTop: 6 }}>{editing ? 'Edytuj program' : 'Nowy program'}</h1>
         </div>
       </div>
 
@@ -89,10 +89,10 @@ export default function ProgramEdit() {
 
       <div className="card pad" style={{ marginBottom: 20 }}>
         <div className="grid cols-2">
-          <Field label="Name">
+          <Field label="Nazwa">
             <input value={form.name || ''} onChange={(e) => set('name', e.target.value)} />
           </Field>
-          <Field label="Grace period (days)">
+          <Field label="Okres umowy (dni)">
             <input
               type="number"
               value={form.gracePeriod ?? ''}
@@ -100,14 +100,14 @@ export default function ProgramEdit() {
             />
           </Field>
         </div>
-        <Field label="Description">
+        <Field label="Opis">
           <textarea
             rows={3}
             value={form.description || ''}
             onChange={(e) => set('description', e.target.value)}
           />
         </Field>
-        <Field label="Marketing text">
+        <Field label="Tekst marketingowy">
           <textarea
             rows={2}
             value={form.marketingText || ''}
@@ -115,21 +115,21 @@ export default function ProgramEdit() {
           />
         </Field>
         <div className="grid cols-3">
-          <Field label="Entry fee (JR)">
+          <Field label="Opłata wstępna (JR)">
             <input
               type="number"
               value={form.entryFee ?? ''}
               onChange={(e) => set('entryFee', e.target.value)}
             />
           </Field>
-          <Field label="Subscription price (JR)">
+          <Field label="Cena abonamentu (JR)">
             <input
               type="number"
               value={form.subscriptionPrice ?? ''}
               onChange={(e) => set('subscriptionPrice', e.target.value)}
             />
           </Field>
-          <Field label="Amount blocked (JR)">
+          <Field label="Kwota zablokowana (JR)">
             <input
               type="number"
               value={form.amountBlocked ?? ''}
@@ -138,7 +138,7 @@ export default function ProgramEdit() {
           </Field>
         </div>
         <div className="grid cols-3">
-          <Field label="Minimal JR for view">
+          <Field label="Minimalne JR do podglądu">
             <input
               type="number"
               value={form.minimalJrForView ?? ''}
@@ -148,34 +148,34 @@ export default function ProgramEdit() {
           <label className="field">
             <span>VIP</span>
             <select value={form.vip ? '1' : '0'} onChange={(e) => set('vip', e.target.value === '1')}>
-              <option value="0">No</option>
-              <option value="1">Yes</option>
+              <option value="0">Nie</option>
+              <option value="1">Tak</option>
             </select>
           </label>
           <label className="field">
-            <span>Recommended</span>
+            <span>Polecany</span>
             <select
               value={form.recommended ? '1' : '0'}
               onChange={(e) => set('recommended', e.target.value === '1')}
             >
-              <option value="0">No</option>
-              <option value="1">Yes</option>
+              <option value="0">Nie</option>
+              <option value="1">Tak</option>
             </select>
           </label>
         </div>
         <label className="field">
-          <span>Visible</span>
+          <span>Widoczny</span>
           <select
             value={form.visible ? '1' : '0'}
             onChange={(e) => set('visible', e.target.value === '1')}
           >
-            <option value="1">Yes</option>
-            <option value="0">No</option>
+            <option value="1">Tak</option>
+            <option value="0">Nie</option>
           </select>
         </label>
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button className="btn primary" onClick={save} disabled={busy}>
-            {busy ? 'Saving…' : editing ? 'Save program' : 'Create program'}
+            {busy ? 'Zapisywanie…' : editing ? 'Zapisz program' : 'Utwórz program'}
           </button>
         </div>
       </div>
@@ -183,7 +183,7 @@ export default function ProgramEdit() {
       {editing && (
         <>
           <Locations programId={id!} />
-          <AttributeManager basePath={`/admin/programs/${id}`} title="Program attributes" />
+          <AttributeManager basePath={`/admin/programs/${id}`} title="Atrybuty programu" />
         </>
       )}
     </div>
@@ -224,7 +224,7 @@ function Locations({ programId }: { programId: string }) {
   useEffect(load, [programId]);
 
   const del = async (locId: any) => {
-    if (!confirm('Delete this location?')) return;
+    if (!confirm('Usunąć tę lokalizację?')) return;
     try {
       await api.del(`/admin/locations/${locId}`);
       load();
@@ -236,24 +236,24 @@ function Locations({ programId }: { programId: string }) {
   return (
     <div className="card" style={{ marginBottom: 20 }}>
       <div className="pad" style={{ paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-        <h3>Locations</h3>
+        <h3>Lokalizacje</h3>
         <button className="btn sm primary" onClick={() => setEdit({ ...EMPTY_LOC })}>
-          + Add location
+          + Dodaj lokalizację
         </button>
       </div>
       <ErrorAlert error={error} />
       {loading ? (
         <Spinner />
       ) : items.length === 0 ? (
-        <Empty>No locations.</Empty>
+        <Empty>Brak lokalizacji.</Empty>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>City</th>
-              <th>Max</th>
-              <th>Visible</th>
+              <th>Nazwa</th>
+              <th>Miasto</th>
+              <th>Maks.</th>
+              <th>Widoczny</th>
               <th />
             </tr>
           </thead>
@@ -271,13 +271,13 @@ function Locations({ programId }: { programId: string }) {
                 </td>
                 <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setAttrFor(l)}>
-                    Attributes
+                    Atrybuty
                   </button>
                   <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(l)}>
-                    Edit
+                    Edytuj
                   </button>
                   <button className="btn sm danger" onClick={() => del(l.id)}>
-                    Delete
+                    Usuń
                   </button>
                 </td>
               </tr>
@@ -298,7 +298,7 @@ function Locations({ programId }: { programId: string }) {
         />
       )}
       {attrFor && (
-        <Modal title={`Attributes · ${attrFor.name}`} onClose={() => setAttrFor(null)} wide>
+        <Modal title={`Atrybuty · ${attrFor.name}`} onClose={() => setAttrFor(null)} wide>
           <AttributeManager basePath={`/admin/locations/${attrFor.id}`} title="" embedded />
         </Modal>
       )}
@@ -354,21 +354,21 @@ function LocationModal({
   };
 
   const fields: [string, string, string?][] = [
-    ['name', 'Name'],
-    ['address', 'Address'],
-    ['city', 'City'],
-    ['postalCode', 'Postal code'],
-    ['latitude', 'Latitude', 'number'],
-    ['longitude', 'Longitude', 'number'],
-    ['purchaseDuration', 'Purchase duration (days)', 'number'],
-    ['maxPurchases', 'Max purchases', 'number'],
-    ['entryFee', 'Entry fee (JR)', 'number'],
-    ['subscriptionPrice', 'Subscription (JR)', 'number'],
-    ['amountBlocked', 'Amount blocked (JR)', 'number'],
+    ['name', 'Nazwa'],
+    ['address', 'Adres'],
+    ['city', 'Miasto'],
+    ['postalCode', 'Kod pocztowy'],
+    ['latitude', 'Szerokość geograficzna', 'number'],
+    ['longitude', 'Długość geograficzna', 'number'],
+    ['purchaseDuration', 'Czas trwania zakupu (dni)', 'number'],
+    ['maxPurchases', 'Maks. zakupów', 'number'],
+    ['entryFee', 'Opłata wstępna (JR)', 'number'],
+    ['subscriptionPrice', 'Abonament (JR)', 'number'],
+    ['amountBlocked', 'Kwota zablokowana (JR)', 'number'],
   ];
 
   return (
-    <Modal title={editing ? 'Edit location' : 'Add location'} onClose={onClose} wide>
+    <Modal title={editing ? 'Edytuj lokalizację' : 'Dodaj lokalizację'} onClose={onClose} wide>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
         <div className="grid cols-2">
@@ -383,18 +383,18 @@ function LocationModal({
           ))}
         </div>
         <label className="field">
-          <span>Visible</span>
+          <span>Widoczny</span>
           <select value={form.visible ? '1' : '0'} onChange={(e) => set('visible', e.target.value === '1')}>
-            <option value="1">Yes</option>
-            <option value="0">No</option>
+            <option value="1">Tak</option>
+            <option value="0">Nie</option>
           </select>
         </label>
         <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
           <button type="button" className="btn ghost" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Saving…' : 'Save location'}
+            {busy ? 'Zapisywanie…' : 'Zapisz lokalizację'}
           </button>
         </div>
       </form>
@@ -471,7 +471,7 @@ function AttributeManager({
   };
 
   const remove = async (attributeId: any) => {
-    if (!confirm('Remove attribute?')) return;
+    if (!confirm('Usunąć atrybut?')) return;
     try {
       await api.del(`${basePath}/remove-attribute/${attributeId}`);
       load();
@@ -486,15 +486,15 @@ function AttributeManager({
       {loading ? (
         <Spinner />
       ) : items.length === 0 ? (
-        <Empty>No attributes.</Empty>
+        <Empty>Brak atrybutów.</Empty>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Start fee</th>
-              <th>Required</th>
+              <th>Nazwa</th>
+              <th>Typ</th>
+              <th>Opłata początkowa</th>
+              <th>Wymagany</th>
               <th />
             </tr>
           </thead>
@@ -511,7 +511,7 @@ function AttributeManager({
                 </td>
                 <td style={{ textAlign: 'right' }}>
                   <button className="btn sm danger" onClick={() => remove(a.id)}>
-                    Remove
+                    Usuń
                   </button>
                 </td>
               </tr>
@@ -521,28 +521,28 @@ function AttributeManager({
       )}
       <form className="pad" onSubmit={add}>
         <div className="grid cols-3">
-          <Field label="Name">
+          <Field label="Nazwa">
             <input value={form.name} onChange={(e) => set('name', e.target.value)} required />
           </Field>
-          <Field label="Type">
+          <Field label="Typ">
             <input value={form.type} onChange={(e) => set('type', e.target.value)} />
           </Field>
-          <Field label="Max count">
+          <Field label="Maks. liczba">
             <input type="number" value={form.maxCount} onChange={(e) => set('maxCount', e.target.value)} />
           </Field>
         </div>
         <div className="grid cols-3">
-          <Field label="Start fee (JR)">
+          <Field label="Opłata początkowa (JR)">
             <input type="number" value={form.startFee} onChange={(e) => set('startFee', e.target.value)} />
           </Field>
-          <Field label="Subscription (JR)">
+          <Field label="Abonament (JR)">
             <input
               type="number"
               value={form.subscriptionPrice}
               onChange={(e) => set('subscriptionPrice', e.target.value)}
             />
           </Field>
-          <Field label="Amount blocked (JR)">
+          <Field label="Kwota zablokowana (JR)">
             <input
               type="number"
               value={form.amountBlocked}
@@ -558,7 +558,7 @@ function AttributeManager({
               onChange={(e) => set('isRequired', e.target.checked)}
               style={{ width: 'auto' }}
             />
-            Required
+            Wymagany
           </label>
           <label style={{ display: 'flex', gap: 6, alignItems: 'center', width: 'auto' }}>
             <input
@@ -567,10 +567,10 @@ function AttributeManager({
               onChange={(e) => set('isMultiselect', e.target.checked)}
               style={{ width: 'auto' }}
             />
-            Multiselect
+            Wielokrotny wybór
           </label>
           <button className="btn primary" type="submit" style={{ marginLeft: 'auto' }}>
-            + Add attribute
+            + Dodaj atrybut
           </button>
         </div>
       </form>

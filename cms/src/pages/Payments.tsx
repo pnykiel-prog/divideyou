@@ -4,9 +4,9 @@ import { api, jr, pln, date } from '../api';
 import { Spinner, Empty, StatusBadge, Pager, ErrorAlert } from '../components/ui';
 
 const TABS = [
-  { key: 'pay-in', label: 'Pay-in', endpoint: 'in' },
-  { key: 'pay-out', label: 'Pay-out', endpoint: 'out' },
-  { key: 'requests', label: 'Requests', endpoint: 'requests' },
+  { key: 'pay-in', label: 'Wpłaty', endpoint: 'in' },
+  { key: 'pay-out', label: 'Wypłaty', endpoint: 'out' },
+  { key: 'requests', label: 'Zwroty', endpoint: 'requests' },
 ];
 const PER_PAGE = 20;
 
@@ -44,7 +44,7 @@ export default function Payments() {
     setMsg(null);
     try {
       await fn();
-      setMsg('Status updated');
+      setMsg('Zaktualizowano status');
       load();
     } catch (err: any) {
       setError(err);
@@ -59,7 +59,7 @@ export default function Payments() {
   return (
     <div>
       <div className="page-head">
-        <h1>Payments</h1>
+        <h1>Płatności</h1>
       </div>
 
       <div className="tabs">
@@ -82,19 +82,19 @@ export default function Payments() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <Empty>No payments.</Empty>
+          <Empty>Brak płatności.</Empty>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Type</th>
-                <th>Value</th>
-                {isRequests && <th>PLN eq.</th>}
-                {isRequests && <th>Description</th>}
+                <th>Klient</th>
+                <th>Typ</th>
+                <th>Wartość</th>
+                {isRequests && <th>Równ. PLN</th>}
+                {isRequests && <th>Opis</th>}
                 <th>Status</th>
-                <th>Date</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th>Data</th>
+                <th style={{ textAlign: 'right' }}>Akcje</th>
               </tr>
             </thead>
             <tbody>
@@ -127,7 +127,7 @@ export default function Payments() {
                             )
                           }
                         >
-                          Accept
+                          Zaakceptuj
                         </button>
                         <button
                           className="btn sm danger"
@@ -140,7 +140,7 @@ export default function Payments() {
                             )
                           }
                         >
-                          Reject
+                          Odrzuć
                         </button>
                       </>
                     ) : (
@@ -154,7 +154,7 @@ export default function Payments() {
                             )
                           }
                         >
-                          Accept
+                          Zaakceptuj
                         </button>
                         <button
                           className="btn sm danger"
@@ -164,7 +164,7 @@ export default function Payments() {
                             )
                           }
                         >
-                          Reject
+                          Odrzuć
                         </button>
                       </>
                     )}

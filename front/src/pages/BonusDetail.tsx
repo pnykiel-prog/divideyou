@@ -26,48 +26,48 @@ export default function BonusDetail() {
     setBusy(true);
     try {
       await api.post('/purchase/finish', { purchase_id: draft.id });
-      alert('Bonus purchased!');
+      alert('Bonus zakupiony!');
       nav('/bonuses/my');
     } catch (e: any) { alert(e.message); } finally { setBusy(false); }
   };
   const cancel = async () => {
-    if (!confirm('Give up this bonus?')) return;
+    if (!confirm('Zrezygnować z tego bonusu?')) return;
     try { await api.post(`/purchase/${existing.id}/cancel-bonus`, {}); load(); } catch (e: any) { alert(e.message); }
   };
 
-  if (!bonus) return <div className="spinner">Loading…</div>;
+  if (!bonus) return <div className="spinner">Ładowanie…</div>;
 
   return (
     <div>
-      <div style={{ marginBottom: 12 }}><Link to="/bonuses">← Back to bonuses</Link></div>
+      <div style={{ marginBottom: 12 }}><Link to="/bonuses">← Powrót do bonusów</Link></div>
       <div className="grid cols-2">
         <div className="card pad">
           <h1>{bonus.name}</h1>
           <p className="muted">{bonus.description}</p>
           <div className="grid cols-2" style={{ marginTop: 10 }}>
-            <div><div className="muted" style={{ fontSize: 12 }}>Price</div><div style={{ fontWeight: 700 }}>{jr(bonus.entryFee)}</div></div>
-            <div><div className="muted" style={{ fontSize: 12 }}>Duration</div><div style={{ fontWeight: 700 }}>{bonus.gracePeriod} mo</div></div>
+            <div><div className="muted" style={{ fontSize: 12 }}>Cena</div><div style={{ fontWeight: 700 }}>{jr(bonus.entryFee)}</div></div>
+            <div><div className="muted" style={{ fontSize: 12 }}>Czas trwania</div><div style={{ fontWeight: 700 }}>{bonus.gracePeriod} mies.</div></div>
           </div>
         </div>
         <div className="card pad">
           {existing ? (
             <>
-              <h3>You own this bonus</h3>
-              <div className="muted">Purchased {new Date(existing.boughtDate).toLocaleDateString()}</div>
-              <button className="btn danger" style={{ marginTop: 12 }} onClick={cancel}>Give up bonus</button>
+              <h3>Posiadasz ten bonus</h3>
+              <div className="muted">Zakupiono {new Date(existing.boughtDate).toLocaleDateString('pl-PL')}</div>
+              <button className="btn danger" style={{ marginTop: 12 }} onClick={cancel}>Zrezygnuj z bonusu</button>
             </>
           ) : !draft ? (
             <>
-              <h3>Purchase this bonus</h3>
-              <button className="btn primary" onClick={start}>Start purchase</button>
+              <h3>Kup ten bonus</h3>
+              <button className="btn primary" onClick={start}>Rozpocznij zakup</button>
             </>
           ) : (
             <>
-              <h3>Summary</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Required now</span><b>{jr(summary?.required)}</b></div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Available</span><span>{jr(summary?.available)}</span></div>
-              {summary && !summary.canAfford && <div className="alert warn" style={{ marginTop: 10 }}>Need {jr(summary.missing)} more. <Link to="/wallet/state">Buy JR</Link></div>}
-              <button className="btn primary" style={{ width: '100%', marginTop: 10 }} disabled={!summary?.canAfford || busy} onClick={finish}>Confirm purchase</button>
+              <h3>Podsumowanie</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Wymagane teraz</span><b>{jr(summary?.required)}</b></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span className="muted">Dostępne</span><span>{jr(summary?.available)}</span></div>
+              {summary && !summary.canAfford && <div className="alert warn" style={{ marginTop: 10 }}>Brakuje {jr(summary.missing)}. <Link to="/wallet/state">Kup JR</Link></div>}
+              <button className="btn primary" style={{ width: '100%', marginTop: 10 }} disabled={!summary?.canAfford || busy} onClick={finish}>Potwierdź zakup</button>
             </>
           )}
         </div>
