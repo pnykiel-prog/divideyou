@@ -1,5 +1,5 @@
 {
-  "name": "divideyou-api",
+  "name": "divideyou-server",
   "version": "1.0.0",
   "private": true,
   "description": "DivideYou API — programs, JR wallet, purchases, partnership commissions",

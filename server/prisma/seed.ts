@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
 const M = 100; // money scale
 const jr = (n: number) => Math.round(n * M);
 const pln = (n: number) => Math.round(n * M);
 
-async function main() {
+// Seeds demo data. Reused by the CLI (npm run seed) and the bootstrap endpoint.
+export async function runSeed(prisma: PrismaClient) {
   console.log('Seeding DivideYou...');
 
   // wipe
@@ -271,15 +271,22 @@ async function main() {
   });
 
   console.log('Seed complete.');
-  console.log('  Admin:   admin@divideyou.test / Password1');
-  console.log('  Partner: anna@divideyou.test  / Password1');
-  console.log('  Client:  jan@divideyou.test   / Password1');
-  console.log('  Demo:    demo@divideyou.test  / Password1');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// CLI entry: `npm run seed`. Skipped when imported as a module.
+const isCli = process.argv[1] && /seed\.ts$/.test(process.argv[1]);
+if (isCli) {
+  const prisma = new PrismaClient();
+  runSeed(prisma)
+    .then(() => {
+      console.log('  Admin:   admin@divideyou.test / Password1');
+      console.log('  Partner: anna@divideyou.test  / Password1');
+      console.log('  Client:  jan@divideyou.test   / Password1');
+      console.log('  Demo:    demo@divideyou.test  / Password1');
+    })
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

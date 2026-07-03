@@ -1,0 +1,24 @@
+{
+  "name": "divideyou",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": ["server", "front", "cms"],
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2"
+  },
+  "scripts": {
+    "vercel-build": "prisma generate --schema server/prisma/schema.prisma && (prisma db push --schema server/prisma/schema.prisma --skip-generate --accept-data-loss || echo '⚠ prisma db push skipped — set DATABASE_URL in Vercel and redeploy') && npm run build --workspace front && npm run build --workspace cms && node scripts/assemble.mjs",
+    "db:push": "prisma db push --schema server/prisma/schema.prisma",
+    "seed": "tsx server/prisma/seed.ts"
+  }
+}

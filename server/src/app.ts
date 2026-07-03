@@ -16,6 +16,7 @@ import adminLocations from './routes/admin/locations.routes.js';
 import adminPayments from './routes/admin/payments.routes.js';
 import adminContent from './routes/admin/content.routes.js';
 import adminMisc from './routes/admin/misc.routes.js';
+import bootstrapRoutes from './routes/bootstrap.routes.js';
 
 const app = express();
 app.use(cors());
@@ -23,6 +24,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'divideyou-api' }));
+app.use('/api/bootstrap', bootstrapRoutes);
 
 // Public + auth
 app.use('/api', authRoutes);
@@ -50,8 +52,5 @@ app.use((_req, res) => res.status(404).json({ error: 'not_found', error_message:
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   sendError(res, err instanceof ApiError ? err : err);
 });
-
-const port = Number(process.env.PORT) || 4000;
-app.listen(port, () => console.log(`DivideYou API listening on http://localhost:${port}`));
 
 export default app;

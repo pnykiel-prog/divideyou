@@ -19,33 +19,56 @@ A back-office **CMS** manages users, catalogue, payments, settings and statistic
 
 | Folder | Stack | Description |
 |--------|-------|-------------|
-| `api/`   | Node + Express + Prisma + SQLite | REST API: JWT auth, JR wallet engine, purchases, partnership commissions, admin management |
-| `front/` | React + Vite | Consumer platform (news, wallet, programs, purchase flow, bonuses, partnership, settings) |
-| `cms/`   | React + Vite | Admin back-office (users, payments, catalogue, parameters, statistics) |
+| `server/` | Node + Express + Prisma + PostgreSQL | REST API: JWT auth, JR wallet engine, purchases, partnership commissions, admin management |
+| `front/`  | React + Vite | Consumer platform (news, wallet, programs, purchase flow, bonuses, partnership, settings) |
+| `cms/`    | React + Vite | Admin back-office (users, payments, catalogue, parameters, statistics) |
+| `api/`    | Vercel function | Serverless entry that serves the Express app on Vercel |
 
-## Running it
+## Local development
 
-Three processes. Start the API first.
+Needs **Node 20+** and a **PostgreSQL** database (local or a Neon URL).
 
 ```bash
 # 1) API  (http://localhost:4000)
-cd api
+cd server
+cp .env.example .env          # set DATABASE_URL (+ JWT_SECRET, SEED_SECRET)
 npm install
-npm run setup      # generate client + create SQLite db + seed demo data
+npm run setup                 # prisma generate + db push + seed demo data
 npm run dev
 
 # 2) Consumer front  (http://localhost:5173)
-cd front
-npm install
-npm run dev
+cd front && npm install && npm run dev
 
 # 3) CMS  (http://localhost:5174)
-cd cms
-npm install
-npm run dev
+cd cms && npm install && npm run dev
 ```
 
 Both frontends proxy `/api` to the API at `localhost:4000`.
+
+## Deploying to Vercel
+
+The repo deploys as a **single Vercel project** (root `vercel.json`):
+the consumer app is served at `/`, the CMS at `/cms`, and the Express API runs
+as a serverless function at `/api/*`. Data lives in **Neon** (serverless Postgres).
+
+1. **Create a Neon database** and copy its **pooled** connection string.
+2. In the Vercel project → **Settings → Environment Variables**, add:
+   | Name | Value |
+   |------|-------|
+   | `DATABASE_URL` | your Neon pooled connection string (`?sslmode=require`) |
+   | `JWT_SECRET` | a long random string |
+   | `SEED_SECRET` | a secret guarding the one-time demo-data endpoint |
+   | `FRONT_URL` | your deployment URL (used for referral links) |
+3. **Deploy.** The build (`npm run vercel-build`) runs `prisma generate`,
+   syncs the schema to Neon (`prisma db push`), builds both SPAs and assembles
+   the static output. Set `DATABASE_URL` **before** the first deploy so the
+   schema is created; otherwise redeploy after adding it.
+4. **Seed demo data once** by visiting:
+   `https://YOUR_APP.vercel.app/api/bootstrap?secret=YOUR_SEED_SECRET`
+   (idempotent — it only seeds an empty database; append `&force=1` to re-seed).
+
+The Vercel project is expected to have its **Root Directory** set to the repo
+root, with **auto-deploy on push** to the connected GitHub branch.
 
 ## Demo accounts (seeded)
 
