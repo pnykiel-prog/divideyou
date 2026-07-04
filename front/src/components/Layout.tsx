@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   Newspaper, LayoutGrid, Wallet as WalletIcon, Layers, Gift, Users, HelpCircle, Settings as Gear,
-  Search, Copy, LogOut, Clock, ArrowRight,
+  Search, Copy, LogOut, Clock, ArrowRight, Menu,
 } from 'lucide-react';
 import { useAuth } from '../auth';
 import { api, jr } from '../api';
@@ -33,6 +33,7 @@ export default function Layout() {
   const { theme, setTheme } = useTheme();
   const toast = useToast();
   const [active, setActive] = useState(0);
+  const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
     api.get('/wallet').then((w) => setActive(w.active)).catch(() => {});
@@ -40,7 +41,19 @@ export default function Layout() {
 
   useEffect(() => {
     document.querySelector('.content')?.scrollTo(0, 0);
+    setDrawer(false); // close mobile drawer on navigation
   }, [loc.pathname]);
+
+  const ThemeToggle = ({ className = '' }: { className?: string }) => (
+    <div className={`theme-toggle ${className}`}>
+      <button className={theme === 'petrol' ? 'active' : ''} title="Motyw Petrol" onClick={() => setTheme('petrol')}>
+        <span className="sw" style={{ background: '#0E3A33' }} />
+      </button>
+      <button className={theme === 'midnight' ? 'active' : ''} title="Motyw Midnight" onClick={() => setTheme('midnight')}>
+        <span className="sw" style={{ background: '#112A40' }} />
+      </button>
+    </div>
+  );
 
   const name = user?.companyName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || '';
   const initials = (user?.companyName
@@ -63,7 +76,8 @@ export default function Layout() {
 
   return (
     <div className="app">
-      <aside className="sidebar dy-scroll">
+      <div className={`sidebar-backdrop${drawer ? ' show' : ''}`} onClick={() => setDrawer(false)} />
+      <aside className={`sidebar dy-scroll${drawer ? ' open' : ''}`}>
         <div className="sidebar-logo">
           <img src="/logo-divideyou.png" alt="DivideYou" />
           <span>DivideYou</span>
@@ -94,24 +108,19 @@ export default function Layout() {
             </button>
           </div>
         </div>
+        <ThemeToggle className="sidebar-theme" />
       </aside>
 
       <div className="main">
         <header className="topbar">
-          <div className="input-icon grow" style={{ maxWidth: 380 }}>
+          <button className="icon-btn menu-btn" title="Menu" onClick={() => setDrawer(true)}><Menu size={18} /></button>
+          <div className="input-icon grow topbar-search" style={{ maxWidth: 380 }}>
             <Search size={18} />
             <input className="input" style={{ height: 40 }} placeholder="Szukaj programów, lokalizacji…"
               onKeyDown={(e) => { if (e.key === 'Enter') nav('/programs'); }} />
           </div>
           <div className="grow" />
-          <div className="theme-toggle">
-            <button className={theme === 'petrol' ? 'active' : ''} title="Motyw Petrol" onClick={() => setTheme('petrol')}>
-              <span className="sw" style={{ background: '#0E3A33' }} />
-            </button>
-            <button className={theme === 'midnight' ? 'active' : ''} title="Motyw Midnight" onClick={() => setTheme('midnight')}>
-              <span className="sw" style={{ background: '#112A40' }} />
-            </button>
-          </div>
+          <ThemeToggle />
           <div className="saldo-cap">
             <div style={{ textAlign: 'right' }}>
               <div className="lab">SALDO AKTYWNE</div>
@@ -119,9 +128,9 @@ export default function Layout() {
             </div>
             <button title="Portfel" onClick={() => nav('/wallet')}><WalletIcon size={17} /></button>
           </div>
-          <div style={{ width: 1, height: 30, background: 'var(--line)' }} />
+          <div className="topbar-divider" style={{ width: 1, height: 30, background: 'var(--line)' }} />
           <div className="row" style={{ gap: 10 }}>
-            <div style={{ textAlign: 'right', lineHeight: 1.25 }}>
+            <div className="user-text" style={{ textAlign: 'right', lineHeight: 1.25 }}>
               <div style={{ fontSize: 13, fontWeight: 700 }}>{name}</div>
               <div style={{ fontSize: 11, color: 'var(--ink-2)' }}>{role}</div>
             </div>
