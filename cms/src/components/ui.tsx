@@ -16,7 +16,7 @@ export function Field({
 }
 
 export function Spinner() {
-  return <div className="spinner">Ładowanie…</div>;
+  return <div className="spinner"><span className="spin-ic" /> Ładowanie…</div>;
 }
 
 export function Empty({ children }: { children?: ReactNode }) {
@@ -69,20 +69,22 @@ export function Pager({
   onPage: (p: number) => void;
 }) {
   const pages = Math.max(1, Math.ceil(total / perPage));
+  const from = total === 0 ? 0 : (page - 1) * perPage + 1;
+  const to = Math.min(page * perPage, total);
+  // window of page numbers around current
+  const nums: number[] = [];
+  const lo = Math.max(1, page - 2), hi = Math.min(pages, page + 2);
+  for (let i = lo; i <= hi; i++) nums.push(i);
   return (
-    <div
-      className="btn-row"
-      style={{ marginTop: 16, alignItems: 'center', justifyContent: 'flex-end' }}
-    >
-      <span className="muted" style={{ marginRight: 'auto' }}>
-        Łącznie: {total} · strona {page} / {pages}
-      </span>
-      <button className="btn sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-        ← Poprzednia
-      </button>
-      <button className="btn sm" disabled={page >= pages} onClick={() => onPage(page + 1)}>
-        Następna →
-      </button>
+    <div className="pager">
+      <span className="info">Wyświetlono {from}–{to} z {total}</span>
+      <button className="pg" disabled={page <= 1} onClick={() => onPage(page - 1)}>‹</button>
+      {lo > 1 && <><button className="pg" onClick={() => onPage(1)}>1</button>{lo > 2 && <span className="muted">…</span>}</>}
+      {nums.map((n) => (
+        <button key={n} className={`pg${n === page ? ' active' : ''}`} onClick={() => onPage(n)}>{n}</button>
+      ))}
+      {hi < pages && <>{hi < pages - 1 && <span className="muted">…</span>}<button className="pg" onClick={() => onPage(pages)}>{pages}</button></>}
+      <button className="pg" disabled={page >= pages} onClick={() => onPage(page + 1)}>›</button>
     </div>
   );
 }

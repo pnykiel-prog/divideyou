@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth';
+import { ThemeProvider } from './theme';
 import Layout from './components/Layout';
 import { Spinner } from './components/ui';
 import './styles.css';
@@ -35,7 +36,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<Protected />}>
-          <Route path="/" element={<Navigate to="/users" replace />} />
+          <Route path="/" element={<Navigate to="/statistics" replace />} />
           <Route path="/users" element={<Users />} />
           <Route path="/users-cms" element={<Admins />} />
           <Route path="/user/:id" element={<UserDetail />} />
@@ -64,8 +65,10 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

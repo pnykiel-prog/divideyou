@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../auth';
-import { Field } from '../components/ui';
 
 export default function Login() {
   const { login } = useAuth();
@@ -17,7 +17,7 @@ export default function Login() {
     setError(null);
     try {
       await login(email, password);
-      nav('/users');
+      nav('/statistics');
     } catch (err: any) {
       setError(err.message || 'Logowanie nie powiodło się');
     } finally {
@@ -27,25 +27,35 @@ export default function Login() {
 
   return (
     <div className="auth-wrap">
-      <form className="auth-card card pad" onSubmit={submit}>
-        <div className="brand">
-          Divide<span>You</span>
+      <form className="auth-card" onSubmit={submit}>
+        <div className="brand-row">
+          <img src="/logo-divideyou.png" alt="" />
+          <span className="word">DivideYou</span>
+          <span className="tag">CMS</span>
         </div>
-        <div className="tag">Panel administracyjny CMS</div>
+        <h1>Panel administracyjny</h1>
+        <p className="sub">Zaloguj się, aby zarządzać platformą.</p>
         {error && <div className="alert error">⚠ {error}</div>}
-        <Field label="E-mail">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
-        </Field>
-        <Field label="Hasło">
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Field>
-        <button className="btn primary" type="submit" disabled={busy} style={{ width: '100%' }}>
-          {busy ? 'Logowanie…' : 'Zaloguj się'}
+        <label className="field" style={{ marginBottom: 14 }}>
+          <span>Adres e-mail</span>
+          <div style={{ position: 'relative' }}>
+            <Mail size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--ink-3)' }} />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ paddingLeft: 36 }} autoFocus />
+          </div>
+        </label>
+        <label className="field" style={{ marginBottom: 18 }}>
+          <span>Hasło</span>
+          <div style={{ position: 'relative' }}>
+            <Lock size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--ink-3)' }} />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ paddingLeft: 36 }} />
+          </div>
+        </label>
+        <button className="btn primary" type="submit" disabled={busy} style={{ width: '100%', height: 44 }}>
+          {busy ? 'Logowanie…' : 'Zaloguj się do CMS'}
         </button>
+        <p className="muted" style={{ fontSize: 12, textAlign: 'center', margin: '18px 0 0' }}>
+          Dostęp tylko dla autoryzowanych administratorów.
+        </p>
       </form>
     </div>
   );
