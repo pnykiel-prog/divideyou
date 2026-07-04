@@ -16,6 +16,7 @@ import adminLocations from './routes/admin/locations.routes.js';
 import adminPayments from './routes/admin/payments.routes.js';
 import adminContent from './routes/admin/content.routes.js';
 import adminMisc from './routes/admin/misc.routes.js';
+import adminStatistics from './routes/admin/statistics.routes.js';
 import bootstrapRoutes from './routes/bootstrap.routes.js';
 
 const app = express();
@@ -38,6 +39,7 @@ app.use('/api/admin/programs', adminPrograms);
 app.use('/api/admin/locations', adminLocations);
 app.use('/api/admin/payments', adminPayments);
 app.use('/api/admin', adminContent);
+app.use('/api/admin/statistics', adminStatistics);
 app.use('/api/admin', adminMisc);
 
 // Client
