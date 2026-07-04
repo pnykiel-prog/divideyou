@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Folder, Upload, FolderPlus, FileText, Image as ImageIcon, Trash2, ChevronRight } from 'lucide-react';
 import { api } from '../api';
 import { Spinner, Empty, Field, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
@@ -8,8 +9,19 @@ interface Crumb {
   name: string;
 }
 
+const IMG_RE = /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i;
+const PDF_RE = /\.pdf$/i;
+
+function fileSize(n: any): string {
+  if (n == null || isNaN(Number(n))) return '';
+  const b = Number(n);
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${Math.round(b / 1024)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function Files() {
-  const [trail, setTrail] = useState<Crumb[]>([{ id: null, name: 'Główny' }]);
+  const [trail, setTrail] = useState<Crumb[]>([{ id: null, name: 'Media' }]);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -43,76 +55,139 @@ export default function Files() {
     }
   };
 
+  const directories = items.filter((i) => i.isDirectory);
+  const files = items.filter((i) => !i.isDirectory);
+
   return (
     <div>
       <div className="page-head">
-        <h1>Pliki</h1>
+        <div>
+          <h1>Pliki</h1>
+          <p className="sub">Biblioteka mediów · drzewo folderów i upload.</p>
+        </div>
         <div className="btn-row">
           <button className="btn" onClick={() => setModal('dir')}>
-            + Nowy folder
+            <FolderPlus size={16} /> Nowy folder
           </button>
           <button className="btn primary" onClick={() => setModal('file')}>
-            + Dodaj plik
+            <Upload size={16} /> Prześlij plik
           </button>
         </div>
       </div>
 
       <ErrorAlert error={error} />
 
-      <div className="card pad" style={{ marginBottom: 16 }}>
-        <div className="btn-row" style={{ gap: 4 }}>
-          {trail.map((c, i) => (
-            <span key={i}>
-              <a style={{ cursor: 'pointer' }} onClick={() => goto(i)}>
-                {c.name}
-              </a>
-              {i < trail.length - 1 && <span className="muted"> / </span>}
-            </span>
+      <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: 16, alignItems: 'start' }}>
+        {/* Folder tree */}
+        <div className="card pad">
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '.1em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-3)',
+              marginBottom: 10,
+            }}
+          >
+            Foldery
+          </div>
+          {trail.map((c, i) => {
+            const isCurrent = i === trail.length - 1;
+            return (
+              <FolderRow
+                key={`t-${i}`}
+                name={c.name}
+                depth={i}
+                active={isCurrent}
+                count={isCurrent ? items.length : undefined}
+                onClick={() => goto(i)}
+              />
+            );
+          })}
+          {directories.map((d) => (
+            <FolderRow key={d.id} name={d.name} depth={trail.length} onClick={() => open(d)} />
           ))}
         </div>
-      </div>
 
-      <div className="card">
-        {loading ? (
-          <Spinner />
-        ) : items.length === 0 ? (
-          <Empty>Pusty folder.</Empty>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Typ</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    {item.isDirectory ? (
-                      <a style={{ cursor: 'pointer' }} onClick={() => open(item)}>
-                        📁 {item.name}
-                      </a>
-                    ) : (
-                      <span>📄 {item.name}</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={`badge ${item.isDirectory ? 'blue' : 'gray'}`}>
-                      {item.isDirectory ? 'Folder' : 'Plik'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button className="btn sm danger" onClick={() => del(item.id)}>
-                      Usuń
+        {/* Files pane */}
+        <div className="card pad">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+            {trail.map((c, i) => (
+              <span key={`b-${i}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                {i > 0 && <ChevronRight size={14} style={{ color: 'var(--ink-3)' }} />}
+                <a
+                  onClick={() => goto(i)}
+                  style={{
+                    cursor: 'pointer',
+                    fontWeight: i === trail.length - 1 ? 700 : 600,
+                    color: i === trail.length - 1 ? 'var(--ink)' : 'var(--ink-3)',
+                  }}
+                >
+                  {c.name}
+                </a>
+              </span>
+            ))}
+          </div>
+
+          {loading ? (
+            <Spinner />
+          ) : files.length === 0 ? (
+            <Empty>Brak plików w tym folderze.</Empty>
+          ) : (
+            <div className="grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
+              {files.map((f) => {
+                const isPdf = PDF_RE.test(f.name || '') || (!IMG_RE.test(f.name || '') && /pdf/i.test(f.type || ''));
+                const isImg = IMG_RE.test(f.name || '') || /image/i.test(f.type || '');
+                const pdf = !isImg && isPdf;
+                const size = fileSize(f.size ?? f.fileSize ?? f.bytes);
+                return (
+                  <div
+                    key={f.id}
+                    className="card"
+                    style={{ padding: 10, position: 'relative', textAlign: 'center' }}
+                  >
+                    <button
+                      className="act del"
+                      title="Usuń"
+                      onClick={() => del(f.id)}
+                      style={{ position: 'absolute', top: 6, right: 6, width: 26, height: 26 }}
+                    >
+                      <Trash2 size={13} />
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                    <div
+                      style={{
+                        height: 86,
+                        borderRadius: 9,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 9,
+                        background: pdf ? 'var(--c-red-bg)' : 'var(--brand-tint)',
+                        color: pdf ? 'var(--c-red)' : 'var(--brand-600)',
+                      }}
+                    >
+                      {pdf ? <FileText size={28} /> : <ImageIcon size={28} />}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                      title={f.name}
+                    >
+                      {f.name}
+                    </div>
+                    {size && <div className="muted" style={{ fontSize: 11.5, marginTop: 2 }}>{size}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {modal && (
@@ -125,6 +200,45 @@ export default function Files() {
             load();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function FolderRow({
+  name,
+  depth,
+  active,
+  count,
+  onClick,
+}: {
+  name: string;
+  depth: number;
+  active?: boolean;
+  count?: number;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '8px 10px',
+        paddingLeft: 10 + depth * 14,
+        borderRadius: 8,
+        cursor: 'pointer',
+        fontSize: 13.5,
+        fontWeight: 600,
+        color: active ? 'var(--brand-600)' : 'var(--ink-2)',
+        background: active ? 'var(--brand-tint)' : 'transparent',
+      }}
+    >
+      <Folder size={16} style={{ flex: 'none' }} />
+      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+      {count != null && (
+        <span className="badge gray" style={{ padding: '1px 8px' }}>{count}</span>
       )}
     </div>
   );
@@ -162,7 +276,7 @@ function CreateModal({
   };
 
   return (
-    <Modal title={kind === 'dir' ? 'Nowy folder' : 'Dodaj plik'} onClose={onClose}>
+    <Modal title={kind === 'dir' ? 'Nowy folder' : 'Prześlij plik'} onClose={onClose}>
       <form onSubmit={save}>
         <ErrorAlert error={error} />
         <Field label="Nazwa">
@@ -173,12 +287,12 @@ function CreateModal({
             <input value={marketingMaterial} onChange={(e) => setMarketingMaterial(e.target.value)} />
           </Field>
         )}
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+        <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" className="btn ghost" onClick={onClose}>
             Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Zapisywanie…' : 'Utwórz'}
+            {busy ? 'Zapisywanie…' : kind === 'dir' ? 'Utwórz' : 'Prześlij'}
           </button>
         </div>
       </form>

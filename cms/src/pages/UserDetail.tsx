@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Plus, Check, Shield, CreditCard, Ban, Trash2 } from 'lucide-react';
 import { api, jr, pln, date } from '../api';
 import { Spinner, Empty, Field, StatusBadge, ErrorAlert } from '../components/ui';
 import { PERMISSION_KEYS, PERMISSION_LEVELS } from '../constants';
@@ -11,6 +12,21 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'programs', label: 'Programy' },
   { key: 'partnership', label: 'Partnerstwo' },
 ];
+
+const LIQUIDITY: Record<number, [string, string]> = {
+  1: ['Bezpieczny', 'green'],
+  2: ['Ostrzeżenie', 'amber'],
+  3: ['Zagrożenie', 'red'],
+};
+function LiquidityPill({ status }: { status: number }) {
+  const [label, cls] = LIQUIDITY[status] || ['Nieznany', 'gray'];
+  return (
+    <span className={`badge ${cls}`}>
+      <span className="pdot" />
+      {label}
+    </span>
+  );
+}
 
 export default function UserDetail() {
   const { id } = useParams();
@@ -48,11 +64,20 @@ export default function UserDetail() {
   if (!user) return <Empty>Nie znaleziono użytkownika.</Empty>;
 
   const blocked = user.blockedStatus === 3;
+  const isCompany = user.type === 2;
   const displayName =
-    user.type === 2
+    (isCompany
       ? user.client?.companyName || user.client?.name
       : [user.client?.firstName, user.client?.lastName].filter(Boolean).join(' ') ||
-        user.admin?.name;
+        user.admin?.name) || user.email;
+  const initials = String(displayName || user.email || '?')
+    .split(/\s+/)
+    .map((s: string) => s[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  const isPartner = !!(user.partner || user.partnerNumber || user.isPartner);
+  const idCode = user.code || user.number || `#${user.id}`;
 
   const donate = () => {
     const value = prompt('Kwota darowizny JR:');
@@ -69,86 +94,91 @@ export default function UserDetail() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <Link to="/users" className="muted">
-            ← Użytkownicy
-          </Link>
-          <h1 style={{ marginTop: 6 }}>
-            {displayName || user.email}{' '}
-            {blocked && <span className="badge red">Zablokowany</span>}{' '}
-            {user.emailConfirmed ? (
-              <span className="badge green">Potwierdzony</span>
-            ) : (
-              <span className="badge amber">Niepotwierdzony</span>
-            )}
-          </h1>
-          <div className="muted">
-            {user.email} · {user.type === 2 ? 'Firma' : 'Klient'} · #{user.id}
-          </div>
-        </div>
+      <div style={{ marginBottom: 16 }}>
+        <Link to="/users" className="muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 600 }}>
+          <ArrowLeft size={16} /> Wróć do listy użytkowników
+        </Link>
       </div>
 
       {msg && <div className="alert info">✓ {msg}</div>}
       <ErrorAlert error={error} />
 
       <div className="card pad" style={{ marginBottom: 20 }}>
-        <div className="btn-row">
-          <button
-            className={`btn sm ${blocked ? '' : 'danger'}`}
-            onClick={() =>
-              act(
-                () => api.patch(`/admin/users/${id}/block`, { status: blocked ? 0 : 1 }),
-                blocked ? 'Odblokowano' : 'Zablokowano'
-              )
-            }
-          >
-            {blocked ? 'Odblokuj' : 'Zablokuj'}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
+          <div className="av-sq dy-h" style={{ width: 64, height: 64, borderRadius: 14, fontSize: 22, fontWeight: 600 }}>
+            {initials}
+          </div>
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h1 className="dy-h" style={{ margin: 0, fontSize: 26 }}>{displayName}</h1>
+              <LiquidityPill status={user.paymentStatus} />
+              {isPartner && <span className="badge violet">Partner</span>}
+              {blocked && <span className="badge red">Zablokowany</span>}
+              {!user.emailConfirmed && <span className="badge amber">E-mail niepotwierdzony</span>}
+            </div>
+            <div className="muted" style={{ marginTop: 6 }}>
+              {isCompany ? 'Firma' : 'Osoba prywatna'} · ID {idCode} · {user.email}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="muted" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 700 }}>
+              Saldo aktywne
+            </div>
+            <div className="dy-h dy-num" style={{ fontSize: 30, marginTop: 4 }}>
+              {jr(user.wallet?.active)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--line)', margin: '18px 0 16px' }} />
+
+        <div className="btn-row" style={{ alignItems: 'center' }}>
+          <button className="btn primary" onClick={donate}>
+            <Plus size={15} /> Dodaj JR
+          </button>
+          <button className="btn" onClick={() => act(() => api.patch(`/admin/users/${id}/confirm-email`), 'Potwierdzono e-mail')}>
+            <Check size={15} /> Potwierdź e-mail
           </button>
           <button
-            className="btn sm"
-            onClick={() => act(() => api.patch(`/admin/users/${id}/confirm-email`), 'Potwierdzono e-mail')}
+            className="btn"
+            onClick={() => act(() => api.patch(`/admin/users/${id}/confirm-full-access`), 'Potwierdzono pełny dostęp')}
           >
-            Potwierdź e-mail
+            <Check size={15} /> Potwierdź dostęp
+          </button>
+          <button className="btn" onClick={assignPartner}>
+            <Shield size={15} /> Przypisz partnera
           </button>
           <button
-            className="btn sm"
-            onClick={() =>
-              act(() => api.patch(`/admin/users/${id}/confirm-full-access`), 'Potwierdzono pełny dostęp')
-            }
+            className="btn"
+            onClick={() => act(() => api.patch(`/admin/users/${id}/allow-only-pay`), 'Przełączono tryb tylko płatności')}
           >
-            Potwierdź pełny dostęp
+            <CreditCard size={15} /> Tryb „tylko płatności” {user.onlyPay ? '(wł.)' : '(wył.)'}
           </button>
-          <button
-            className="btn sm"
-            onClick={() =>
-              act(() => api.patch(`/admin/users/${id}/allow-only-pay`), 'Przełączono tylko płatności')
-            }
-          >
-            Przełącz tylko płatności {user.onlyPay ? '(wł.)' : '(wył.)'}
-          </button>
-          <button className="btn sm" onClick={donate}>
-            + Dodaj JR
-          </button>
-          <button className="btn sm" onClick={assignPartner}>
-            Przypisz partnera
-          </button>
-          <button className="btn sm danger" onClick={doDelete}>
-            Usuń
-          </button>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+            <button
+              className={`btn ${blocked ? '' : 'danger'}`}
+              onClick={() =>
+                act(
+                  () => api.patch(`/admin/users/${id}/block`, { status: blocked ? 0 : 1 }),
+                  blocked ? 'Odblokowano' : 'Zablokowano'
+                )
+              }
+            >
+              <Ban size={15} /> {blocked ? 'Odblokuj' : 'Blokuj'}
+            </button>
+            <button className="btn danger" onClick={doDelete}>
+              <Trash2 size={15} /> Usuń
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="tabs">
         {TABS.map((t) => (
-          <a
-            key={t.key}
-            className={tab === t.key ? 'active' : ''}
-            style={{ cursor: 'pointer' }}
-            onClick={() => setTab(t.key)}
-          >
+          <button key={t.key} className={tab === t.key ? 'active' : ''} onClick={() => setTab(t.key)}>
             {t.label}
-          </a>
+          </button>
         ))}
       </div>
 
@@ -173,12 +203,12 @@ function WalletCard({ wallet }: { wallet: any }) {
   ];
   return (
     <div className="card pad" style={{ marginBottom: 20 }}>
-      <h3>Portfel</h3>
+      <h3 style={{ margin: '0 0 14px' }}>Portfel</h3>
       <div className="grid cols-3">
         {buckets.map(([key, label]) => (
           <div className="stat" key={key}>
             <div className="label">{label}</div>
-            <div className="value" style={{ fontSize: 20 }}>
+            <div className="value dy-num" style={{ fontSize: 22 }}>
               {jr(wallet[key])}
             </div>
           </div>
@@ -239,7 +269,7 @@ function DataTab({ user, onSaved }: { user: any; onSaved: () => void }) {
     <div>
       <WalletCard wallet={user.wallet} />
       <div className="card pad">
-        <h3>{isAdmin ? 'Dane administratora' : 'Dane osobowe / firmowe'}</h3>
+        <h3 style={{ margin: '0 0 14px' }}>{isAdmin ? 'Dane administratora' : 'Dane osobowe / firmowe'}</h3>
         {msg && <div className="alert info">✓ {msg}</div>}
         <ErrorAlert error={error} />
 
@@ -253,33 +283,41 @@ function DataTab({ user, onSaved }: { user: any; onSaved: () => void }) {
                 <input value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} />
               </Field>
             </div>
-            <span style={{ fontWeight: 600, fontSize: 13, display: 'block', margin: '8px 0' }}>
+            <span style={{ fontWeight: 700, fontSize: 13, display: 'block', margin: '16px 0 8px' }}>
               Uprawnienia
             </span>
-            <div className="card" style={{ marginBottom: 14 }}>
-              <table>
-                <tbody>
-                  {PERMISSION_KEYS.map((p) => (
-                    <tr key={p.key}>
-                      <td>{p.label}</td>
-                      <td style={{ width: 160 }}>
-                        <select
-                          value={permissions[p.key] ?? 0}
-                          onChange={(e) =>
-                            setPermissions((prev) => ({ ...prev, [p.key]: Number(e.target.value) }))
-                          }
-                        >
-                          {PERMISSION_LEVELS.map((l) => (
-                            <option key={l.value} value={l.value}>
-                              {l.label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
+            <div className="table-card" style={{ marginBottom: 16 }}>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Moduł</th>
+                      <th style={{ width: 180 }}>Poziom dostępu</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {PERMISSION_KEYS.map((p) => (
+                      <tr key={p.key}>
+                        <td>{p.label}</td>
+                        <td style={{ width: 180 }}>
+                          <select
+                            value={permissions[p.key] ?? 0}
+                            onChange={(e) =>
+                              setPermissions((prev) => ({ ...prev, [p.key]: Number(e.target.value) }))
+                            }
+                          >
+                            {PERMISSION_LEVELS.map((l) => (
+                              <option key={l.value} value={l.value}>
+                                {l.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         ) : (
@@ -292,7 +330,7 @@ function DataTab({ user, onSaved }: { user: any; onSaved: () => void }) {
           </div>
         )}
 
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+        <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 18 }}>
           <button className="btn primary" onClick={save} disabled={busy}>
             {busy ? 'Zapisywanie…' : 'Zapisz zmiany'}
           </button>
@@ -319,37 +357,39 @@ function PaymentsTab({ id }: { id: string }) {
 
   if (loading) return <Spinner />;
   return (
-    <div className="card">
+    <div className="table-card">
       <ErrorAlert error={error} />
       {items.length === 0 ? (
         <Empty>Brak transakcji.</Empty>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Typ</th>
-              <th>Wartość</th>
-              <th>Równ. PLN</th>
-              <th>Status</th>
-              <th>Opis</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((t, i) => (
-              <tr key={t.id ?? i}>
-                <td>{t.type}</td>
-                <td>{jr(t.value)}</td>
-                <td>{pln(t.plnEquivalent)}</td>
-                <td>
-                  <StatusBadge status={t.status} />
-                </td>
-                <td>{t.description || '—'}</td>
-                <td>{date(t.timestamp || t.createdAt)}</td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Typ</th>
+                <th className="num">Wartość</th>
+                <th className="num">Równ. PLN</th>
+                <th>Status</th>
+                <th>Opis</th>
+                <th>Data</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((t, i) => (
+                <tr key={t.id ?? i}>
+                  <td>{t.type}</td>
+                  <td className="num">{jr(t.value)}</td>
+                  <td className="num">{pln(t.plnEquivalent)}</td>
+                  <td>
+                    <StatusBadge status={t.status} />
+                  </td>
+                  <td>{t.description || '—'}</td>
+                  <td className="muted">{date(t.timestamp || t.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -393,44 +433,41 @@ function ProgramsTab({ id }: { id: string }) {
   if (loading) return <Spinner />;
 
   const renderTable = (title: string, rows: any[]) => (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div className="pad" style={{ paddingBottom: 0 }}>
-        <h3>{title}</h3>
+    <div className="table-card" style={{ marginBottom: 20 }}>
+      <div className="pad" style={{ paddingBottom: 12 }}>
+        <h3 style={{ margin: 0 }}>{title}</h3>
       </div>
       {rows.length === 0 ? (
         <Empty>Brak.</Empty>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Status</th>
-              <th>Zakupiono</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((p, i) => (
-              <tr key={p.id ?? p.purchaseId ?? i}>
-                <td>
-                  <b>{p.name || p.programName || p.locationName || '—'}</b>
-                </td>
-                <td>
-                  {p.status != null ? <StatusBadge status={p.status} /> : '—'}
-                </td>
-                <td>{date(p.createdAt || p.purchasedAt)}</td>
-                <td style={{ textAlign: 'right' }}>
-                  <button
-                    className="btn sm danger"
-                    onClick={() => cancel(p.purchaseId ?? p.id)}
-                  >
-                    Anuluj
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Status</th>
+                <th>Zakupiono</th>
+                <th className="actions">Akcje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((p, i) => (
+                <tr key={p.id ?? p.purchaseId ?? i}>
+                  <td>
+                    <b>{p.name || p.programName || p.locationName || '—'}</b>
+                  </td>
+                  <td>{p.status != null ? <StatusBadge status={p.status} /> : '—'}</td>
+                  <td className="muted">{date(p.createdAt || p.purchasedAt)}</td>
+                  <td className="actions">
+                    <button className="btn sm danger" onClick={() => cancel(p.purchaseId ?? p.id)}>
+                      Anuluj
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -490,8 +527,8 @@ function PartnershipTab({ id }: { id: string }) {
       <ErrorAlert error={error} />
 
       <div className="card pad" style={{ marginBottom: 20 }}>
-        <h3>Prowizja niestandardowa</h3>
-        <div className="muted" style={{ marginBottom: 12 }}>
+        <h3 style={{ margin: '0 0 6px' }}>Prowizja niestandardowa</h3>
+        <div className="muted" style={{ marginBottom: 14 }}>
           Prowizja bazowa: {data?.base != null ? `${data.base}%` : '—'}
         </div>
         <div className="btn-row" style={{ alignItems: 'flex-end' }}>
@@ -529,43 +566,45 @@ function PartnershipTab({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="card">
-        <div className="pad" style={{ paddingBottom: 0 }}>
-          <h3>Progi prowizji</h3>
+      <div className="table-card">
+        <div className="pad" style={{ paddingBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>Progi prowizji</h3>
         </div>
         {(data?.thresholds || []).length === 0 ? (
           <Empty>Brak progów.</Empty>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Min JR</th>
-                <th>Prowizja %</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {data.thresholds.map((t: any) => (
-                <tr key={t.id}>
-                  <td>{jr(t.min)}</td>
-                  <td>{t.value}%</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      className="btn sm danger"
-                      onClick={() =>
-                        run(
-                          () => api.post(`/admin/users/${id}/remove-commission-threshold`, { id: t.id }),
-                          'Usunięto próg'
-                        )
-                      }
-                    >
-                      Usuń
-                    </button>
-                  </td>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th className="num">Min JR</th>
+                  <th className="num">Prowizja %</th>
+                  <th className="actions">Akcje</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.thresholds.map((t: any) => (
+                  <tr key={t.id}>
+                    <td className="num">{jr(t.min)}</td>
+                    <td className="num">{t.value}%</td>
+                    <td className="actions">
+                      <button
+                        className="btn sm danger"
+                        onClick={() =>
+                          run(
+                            () => api.post(`/admin/users/${id}/remove-commission-threshold`, { id: t.id }),
+                            'Usunięto próg'
+                          )
+                        }
+                      >
+                        Usuń
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         <div className="pad btn-row" style={{ alignItems: 'flex-end' }}>
           <label className="field" style={{ marginBottom: 0 }}>
@@ -594,7 +633,7 @@ function PartnershipTab({ id }: { id: string }) {
               )
             }
           >
-            + Dodaj próg
+            <Plus size={15} /> Dodaj próg
           </button>
         </div>
       </div>

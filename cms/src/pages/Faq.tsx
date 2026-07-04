@@ -1,9 +1,25 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, Pencil, Trash2, Search, Save } from 'lucide-react';
 import { api } from '../api';
-import { Spinner, Empty, Field, YesNo, ErrorAlert } from '../components/ui';
+import { Spinner, Empty, Field, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
 
 const EMPTY = { question: '', answer: '', sortOrder: 0, onDashboard: false };
+
+function StatusPill({ item }: { item: any }) {
+  const draft =
+    item.draft === true ||
+    item.published === false ||
+    item.isPublished === false ||
+    item.active === false ||
+    item.status === 'draft';
+  return draft ? (
+    <span className="badge amber"><span className="pdot" /> Wersja robocza</span>
+  ) : (
+    <span className="badge green"><span className="pdot" /> Opublikowany</span>
+  );
+}
 
 export default function Faq() {
   const [items, setItems] = useState<any[]>([]);
@@ -38,66 +54,89 @@ export default function Faq() {
   return (
     <div>
       <div className="page-head">
-        <h1>FAQ</h1>
-        <div className="btn-row">
-          <form
-            className="btn-row"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearch(query);
-            }}
-          >
-            <input placeholder="Szukaj…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ width: 200 }} />
-            <button className="btn" type="submit">
-              Szukaj
-            </button>
-          </form>
-          <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-            + Dodaj FAQ
-          </button>
+        <div>
+          <h1>Treści</h1>
+          <p className="sub">Zarządzanie aktualnościami i pytaniami FAQ.</p>
         </div>
+        <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
+          <Plus size={16} /> Dodaj pytanie
+        </button>
+      </div>
+
+      <div className="tabs">
+        <Link to="/news">Aktualności</Link>
+        <Link to="/faq" className="active">FAQ</Link>
       </div>
 
       <ErrorAlert error={error} />
 
-      <div className="card">
+      <form
+        className="filterbar"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSearch(query);
+        }}
+      >
+        <div className="grow" style={{ position: 'relative' }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: 11, color: 'var(--ink-3)' }} />
+          <input
+            placeholder="Szukaj pytania…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ paddingLeft: 36 }}
+          />
+        </div>
+        <button className="btn" type="submit">
+          <Search size={16} /> Szukaj
+        </button>
+      </form>
+
+      <div className="table-card">
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
           <Empty>Brak wpisów FAQ.</Empty>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Pytanie</th>
-                <th>Kolejność</th>
-                <th>Panel główny</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((f) => (
-                <tr key={f.id}>
-                  <td>
-                    <b>{f.question}</b>
-                    <div className="muted">{(f.answer || '').slice(0, 80)}</div>
-                  </td>
-                  <td>{f.sortOrder ?? 0}</td>
-                  <td>
-                    <YesNo value={f.onDashboard} />
-                  </td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(f)}>
-                      Edytuj
-                    </button>
-                    <button className="btn sm danger" onClick={() => del(f.id)}>
-                      Usuń
-                    </button>
-                  </td>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Pytanie</th>
+                  <th>Na pulpicie</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Akcje</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((f) => (
+                  <tr key={f.id}>
+                    <td>
+                      <b>{f.question}</b>
+                      <div className="muted" style={{ maxWidth: 420 }}>{(f.answer || '').slice(0, 90)}</div>
+                    </td>
+                    <td>
+                      {f.onDashboard ? (
+                        <span className="badge green"><span className="pdot" /> Tak</span>
+                      ) : (
+                        <span className="badge gray">Nie</span>
+                      )}
+                    </td>
+                    <td><StatusPill item={f} /></td>
+                    <td className="actions">
+                      <div style={{ display: 'inline-flex', gap: 6 }}>
+                        <button className="act" title="Edytuj" onClick={() => setEdit(f)}>
+                          <Pencil size={15} />
+                        </button>
+                        <button className="act del" title="Usuń" onClick={() => del(f.id)}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -165,12 +204,12 @@ function FaqModal({ entry, onClose, onSaved }: { entry: any; onClose: () => void
             </select>
           </label>
         </div>
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+        <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" className="btn ghost" onClick={onClose}>
             Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Zapisywanie…' : 'Zapisz'}
+            <Save size={16} /> {busy ? 'Zapisywanie…' : 'Zapisz'}
           </button>
         </div>
       </form>

@@ -1,10 +1,61 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  ArrowLeft, Save, Plus, Pencil, Trash2, MapPin, Sliders, Image as ImageIcon, Upload,
+} from 'lucide-react';
 import { api } from '../api';
 import { Spinner, Empty, Field, YesNo, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
 
 const num = (v: any) => (v === '' || v == null ? undefined : Number(v));
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        padding: '13px 0',
+        borderTop: '1px solid var(--line)',
+      }}
+    >
+      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        style={{
+          flex: 'none',
+          width: 44,
+          height: 26,
+          borderRadius: 20,
+          border: 'none',
+          cursor: 'pointer',
+          position: 'relative',
+          background: checked ? 'var(--brand)' : 'var(--bg-2)',
+          transition: 'background .15s',
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute',
+            top: 3,
+            left: checked ? 21 : 3,
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            background: '#fff',
+            boxShadow: '0 1px 2px rgba(0,0,0,.25)',
+            transition: 'left .15s',
+          }}
+        />
+      </button>
+    </div>
+  );
+}
 
 export default function ProgramEdit() {
   const { id } = useParams();
@@ -75,117 +126,188 @@ export default function ProgramEdit() {
 
   return (
     <div>
+      <Link
+        to="/programs"
+        className="muted"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, marginBottom: 10 }}
+      >
+        <ArrowLeft size={16} /> Wróć do listy programów
+      </Link>
+
       <div className="page-head">
         <div>
-          <Link to="/programs" className="muted">
-            ← Programy
-          </Link>
-          <h1 style={{ marginTop: 6 }}>{editing ? 'Edytuj program' : 'Nowy program'}</h1>
+          <h1>{editing ? `Edytuj program — ${form.name || ''}` : 'Nowy program'}</h1>
+        </div>
+        <div className="btn-row">
+          <button className="btn ghost" onClick={() => nav('/programs')} disabled={busy}>
+            Anuluj
+          </button>
+          <button className="btn primary" onClick={save} disabled={busy}>
+            <Save size={16} /> {busy ? 'Zapisywanie…' : editing ? 'Zapisz program' : 'Utwórz program'}
+          </button>
         </div>
       </div>
 
       {msg && <div className="alert info">✓ {msg}</div>}
       <ErrorAlert error={error} />
 
-      <div className="card pad" style={{ marginBottom: 20 }}>
-        <div className="grid cols-2">
-          <Field label="Nazwa">
-            <input value={form.name || ''} onChange={(e) => set('name', e.target.value)} />
-          </Field>
-          <Field label="Okres umowy (dni)">
-            <input
-              type="number"
-              value={form.gracePeriod ?? ''}
-              onChange={(e) => set('gracePeriod', e.target.value)}
-            />
-          </Field>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: 20, alignItems: 'start' }}>
+        {/* LEFT */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 16px' }}>Podstawowe informacje</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="Nazwa programu">
+                <input value={form.name || ''} onChange={(e) => set('name', e.target.value)} />
+              </Field>
+              <Field label="Okres umowy (mies.)">
+                <input
+                  type="number"
+                  placeholder="6, 12, 24"
+                  value={form.gracePeriod ?? ''}
+                  onChange={(e) => set('gracePeriod', e.target.value)}
+                />
+              </Field>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <Field label="Opis">
+                <textarea
+                  rows={3}
+                  value={form.description || ''}
+                  onChange={(e) => set('description', e.target.value)}
+                />
+              </Field>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <Field label="Tekst marketingowy">
+                <textarea
+                  rows={2}
+                  value={form.marketingText || ''}
+                  onChange={(e) => set('marketingText', e.target.value)}
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 16px' }}>Opłaty</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="Opłata wstępna (JR)">
+                <input
+                  type="number"
+                  value={form.entryFee ?? ''}
+                  onChange={(e) => set('entryFee', e.target.value)}
+                />
+              </Field>
+              <Field label="Cena abonamentu (JR)">
+                <input
+                  type="number"
+                  value={form.subscriptionPrice ?? ''}
+                  onChange={(e) => set('subscriptionPrice', e.target.value)}
+                />
+              </Field>
+              <Field label="Kwota zablokowana (JR)">
+                <input
+                  type="number"
+                  value={form.amountBlocked ?? ''}
+                  onChange={(e) => set('amountBlocked', e.target.value)}
+                />
+              </Field>
+              <Field label="Minimalne JR do podglądu">
+                <input
+                  type="number"
+                  value={form.minimalJrForView ?? ''}
+                  onChange={(e) => set('minimalJrForView', e.target.value)}
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 16px' }}>Zdjęcie i galeria</h3>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 11,
+                    background: 'var(--bg-2)',
+                    border: '1px solid var(--line)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--ink-3)',
+                  }}
+                >
+                  <ImageIcon size={22} />
+                </div>
+              ))}
+              <button
+                type="button"
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 11,
+                  background: 'transparent',
+                  border: '1.5px dashed var(--line)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  color: 'var(--ink-2)',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                <Upload size={18} /> Dodaj
+              </button>
+            </div>
+          </div>
+
+          {editing && (
+            <>
+              <Locations programId={id!} />
+              <AttributeManager basePath={`/admin/programs/${id}`} title="Atrybuty programu" />
+            </>
+          )}
         </div>
-        <Field label="Opis">
-          <textarea
-            rows={3}
-            value={form.description || ''}
-            onChange={(e) => set('description', e.target.value)}
-          />
-        </Field>
-        <Field label="Tekst marketingowy">
-          <textarea
-            rows={2}
-            value={form.marketingText || ''}
-            onChange={(e) => set('marketingText', e.target.value)}
-          />
-        </Field>
-        <div className="grid cols-3">
-          <Field label="Opłata wstępna (JR)">
-            <input
-              type="number"
-              value={form.entryFee ?? ''}
-              onChange={(e) => set('entryFee', e.target.value)}
-            />
-          </Field>
-          <Field label="Cena abonamentu (JR)">
-            <input
-              type="number"
-              value={form.subscriptionPrice ?? ''}
-              onChange={(e) => set('subscriptionPrice', e.target.value)}
-            />
-          </Field>
-          <Field label="Kwota zablokowana (JR)">
-            <input
-              type="number"
-              value={form.amountBlocked ?? ''}
-              onChange={(e) => set('amountBlocked', e.target.value)}
-            />
-          </Field>
-        </div>
-        <div className="grid cols-3">
-          <Field label="Minimalne JR do podglądu">
-            <input
-              type="number"
-              value={form.minimalJrForView ?? ''}
-              onChange={(e) => set('minimalJrForView', e.target.value)}
-            />
-          </Field>
-          <label className="field">
-            <span>VIP</span>
-            <select value={form.vip ? '1' : '0'} onChange={(e) => set('vip', e.target.value === '1')}>
-              <option value="0">Nie</option>
-              <option value="1">Tak</option>
-            </select>
-          </label>
-          <label className="field">
-            <span>Polecany</span>
-            <select
-              value={form.recommended ? '1' : '0'}
-              onChange={(e) => set('recommended', e.target.value === '1')}
+
+        {/* RIGHT */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 82 }}>
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 4px' }}>Widoczność i flagi</h3>
+            <Toggle label="Widoczny w katalogu" checked={!!form.visible} onChange={(v) => set('visible', v)} />
+            <Toggle label="Program VIP" checked={!!form.vip} onChange={(v) => set('vip', v)} />
+            <Toggle label="Polecany" checked={!!form.recommended} onChange={(v) => set('recommended', v)} />
+          </div>
+
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 14px' }}>Marker na mapie</h3>
+            <div
+              style={{
+                height: 150,
+                borderRadius: 11,
+                border: '1px solid var(--line)',
+                background:
+                  'repeating-linear-gradient(0deg, var(--bg-2) 0 23px, var(--line) 23px 24px), repeating-linear-gradient(90deg, var(--bg-2) 0 23px, var(--line) 23px 24px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--brand)',
+              }}
             >
-              <option value="0">Nie</option>
-              <option value="1">Tak</option>
-            </select>
-          </label>
-        </div>
-        <label className="field">
-          <span>Widoczny</span>
-          <select
-            value={form.visible ? '1' : '0'}
-            onChange={(e) => set('visible', e.target.value === '1')}
-          >
-            <option value="1">Tak</option>
-            <option value="0">Nie</option>
-          </select>
-        </label>
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
-          <button className="btn primary" onClick={save} disabled={busy}>
-            {busy ? 'Zapisywanie…' : editing ? 'Zapisz program' : 'Utwórz program'}
-          </button>
+              <MapPin size={26} />
+            </div>
+            <p className="muted" style={{ fontSize: 12, margin: '10px 0 0' }}>
+              Współrzędne markera ustawiasz w poszczególnych lokalizacjach programu.
+            </p>
+          </div>
         </div>
       </div>
-
-      {editing && (
-        <>
-          <Locations programId={id!} />
-          <AttributeManager basePath={`/admin/programs/${id}`} title="Atrybuty programu" />
-        </>
-      )}
     </div>
   );
 }
@@ -234,11 +356,16 @@ function Locations({ programId }: { programId: string }) {
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div className="pad" style={{ paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-        <h3>Lokalizacje</h3>
+    <div className="table-card">
+      <div
+        className="pad"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
+      >
+        <h3 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <MapPin size={18} /> Lokalizacje
+        </h3>
         <button className="btn sm primary" onClick={() => setEdit({ ...EMPTY_LOC })}>
-          + Dodaj lokalizację
+          <Plus size={15} /> Dodaj lokalizację
         </button>
       </div>
       <ErrorAlert error={error} />
@@ -247,43 +374,49 @@ function Locations({ programId }: { programId: string }) {
       ) : items.length === 0 ? (
         <Empty>Brak lokalizacji.</Empty>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Miasto</th>
-              <th>Maks.</th>
-              <th>Widoczny</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((l) => (
-              <tr key={l.id}>
-                <td>
-                  <b>{l.name}</b>
-                  <div className="muted">{l.address}</div>
-                </td>
-                <td>{l.city}</td>
-                <td>{l.maxPurchases ?? '—'}</td>
-                <td>
-                  <YesNo value={l.visible} />
-                </td>
-                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                  <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setAttrFor(l)}>
-                    Atrybuty
-                  </button>
-                  <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(l)}>
-                    Edytuj
-                  </button>
-                  <button className="btn sm danger" onClick={() => del(l.id)}>
-                    Usuń
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Miasto</th>
+                <th className="num">Limit</th>
+                <th>Status</th>
+                <th className="num">Akcje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((l) => (
+                <tr key={l.id}>
+                  <td>
+                    <b>{l.name}</b>
+                    <div className="muted">{l.address}</div>
+                  </td>
+                  <td>{l.city}</td>
+                  <td className="num dy-num">{l.maxPurchases ?? '—'}</td>
+                  <td>
+                    {l.visible ? (
+                      <span className="badge green"><span className="pdot" />Widoczny</span>
+                    ) : (
+                      <span className="badge gray"><span className="pdot" />Ukryty</span>
+                    )}
+                  </td>
+                  <td className="actions">
+                    <button className="act" title="Atrybuty" onClick={() => setAttrFor(l)}>
+                      <Sliders size={15} />
+                    </button>
+                    <button className="act" title="Edytuj" onClick={() => setEdit(l)}>
+                      <Pencil size={15} />
+                    </button>
+                    <button className="act del" title="Usuń" onClick={() => del(l.id)}>
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {edit && (
@@ -389,12 +522,12 @@ function LocationModal({
             <option value="0">Nie</option>
           </select>
         </label>
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+        <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
           <button type="button" className="btn ghost" onClick={onClose}>
             Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Zapisywanie…' : 'Zapisz lokalizację'}
+            <Save size={16} /> {busy ? 'Zapisywanie…' : 'Zapisz lokalizację'}
           </button>
         </div>
       </form>
@@ -403,6 +536,13 @@ function LocationModal({
 }
 
 /* ---------- Attribute manager (programs & locations) ---------- */
+const ATTR_TYPE_PILL: Record<string, string> = {
+  prosty: 'gray',
+  wybieralny: 'blue',
+  liczbowy: 'violet',
+  końcowy: 'amber',
+};
+
 function AttributeManager({
   basePath,
   title,
@@ -488,36 +628,50 @@ function AttributeManager({
       ) : items.length === 0 ? (
         <Empty>Brak atrybutów.</Empty>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Nazwa</th>
-              <th>Typ</th>
-              <th>Opłata początkowa</th>
-              <th>Wymagany</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((a) => (
-              <tr key={a.id}>
-                <td>
-                  <b>{a.name}</b>
-                </td>
-                <td>{a.type}</td>
-                <td>{a.startFee ?? '—'}</td>
-                <td>
-                  <YesNo value={a.isRequired} />
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <button className="btn sm danger" onClick={() => remove(a.id)}>
-                    Usuń
-                  </button>
-                </td>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Atrybut</th>
+                <th>Typ</th>
+                <th className="num">Opłata pocz.</th>
+                <th className="num">Abon.</th>
+                <th>Wielokr.</th>
+                <th>Wymag.</th>
+                <th className="num">Akcje</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((a) => (
+                <tr key={a.id}>
+                  <td>
+                    <b>{a.name}</b>
+                  </td>
+                  <td>
+                    {a.type ? (
+                      <span className={`badge ${ATTR_TYPE_PILL[a.type] || 'gray'}`}>{a.type}</span>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </td>
+                  <td className="num dy-num">{a.startFee ?? '—'}</td>
+                  <td className="num dy-num">{a.subscriptionPrice ?? '—'}</td>
+                  <td>
+                    <YesNo value={a.isMultiselect} />
+                  </td>
+                  <td>
+                    <YesNo value={a.isRequired} />
+                  </td>
+                  <td className="actions">
+                    <button className="act del" title="Usuń" onClick={() => remove(a.id)}>
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       <form className="pad" onSubmit={add}>
         <div className="grid cols-3">
@@ -531,7 +685,7 @@ function AttributeManager({
             <input type="number" value={form.maxCount} onChange={(e) => set('maxCount', e.target.value)} />
           </Field>
         </div>
-        <div className="grid cols-3">
+        <div className="grid cols-3" style={{ marginTop: 12 }}>
           <Field label="Opłata początkowa (JR)">
             <input type="number" value={form.startFee} onChange={(e) => set('startFee', e.target.value)} />
           </Field>
@@ -550,7 +704,7 @@ function AttributeManager({
             />
           </Field>
         </div>
-        <div className="btn-row" style={{ alignItems: 'center' }}>
+        <div className="btn-row" style={{ alignItems: 'center', marginTop: 14 }}>
           <label style={{ display: 'flex', gap: 6, alignItems: 'center', width: 'auto' }}>
             <input
               type="checkbox"
@@ -570,7 +724,7 @@ function AttributeManager({
             Wielokrotny wybór
           </label>
           <button className="btn primary" type="submit" style={{ marginLeft: 'auto' }}>
-            + Dodaj atrybut
+            <Plus size={16} /> Dodaj atrybut
           </button>
         </div>
       </form>
@@ -580,9 +734,11 @@ function AttributeManager({
   if (embedded) return body;
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
+    <div className="table-card">
       <div className="pad" style={{ paddingBottom: 0 }}>
-        <h3>{title}</h3>
+        <h3 style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <Sliders size={18} /> {title}
+        </h3>
       </div>
       {body}
     </div>

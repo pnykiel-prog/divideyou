@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
+import { Save } from 'lucide-react';
 import { api } from '../api';
 import { Spinner, Field, ErrorAlert } from '../components/ui';
 
 const SETTING_FIELDS: [string, string][] = [
-  ['demoAccessDays', 'Dostęp demo (dni)'],
-  ['accessPrice', 'Opłata za dostęp'],
-  ['jrExchangeRate', 'Kurs wymiany JR'],
+  ['demoAccessDays', 'Dni bezpłatnego dostępu (demo)'],
+  ['accessPrice', 'Opłata za dostęp (JR)'],
+  ['jrExchangeRate', 'Wartość 1 JR (PLN)'],
   ['jrWithdrawalPeriodDays', 'Okres wypłaty JR (dni)'],
-  ['jrProtectionPeriodDays', 'Okres ochrony JR (dni)'],
-  ['minJrForVip', 'Min JR dla VIP'],
-  ['minJrForBonus', 'Min JR dla bonusu'],
-  ['partnerTerm', 'Termin partnera'],
+  ['jrProtectionPeriodDays', 'Okres ochrony / karencji wypłaty (dni)'],
+  ['minJrForVip', 'Min. saldo JR — programy VIP'],
+  ['minJrForBonus', 'Min. saldo JR — bonusy'],
+  ['partnerTerm', 'Termin partnera (dni)'],
 ];
+const LABELS: Record<string, string> = Object.fromEntries(SETTING_FIELDS);
 
 export default function Parameters() {
   const [settings, setSettings] = useState<any>({});
@@ -64,72 +66,58 @@ export default function Parameters() {
 
   if (loading) return <Spinner />;
 
+  const SField = ({ k }: { k: string }) => (
+    <Field label={LABELS[k] || k}>
+      <input type="number" value={settings[k] ?? ''} onChange={(e) => setS(k, e.target.value)} />
+    </Field>
+  );
+
   return (
     <div>
       <div className="page-head">
-        <h1>Parametry</h1>
+        <div>
+          <h1>Parametry</h1>
+          <p className="sub">Ustawienia globalne platformy.</p>
+        </div>
         <button className="btn primary" onClick={save} disabled={busy}>
-          {busy ? 'Zapisywanie…' : 'Zapisz wszystko'}
+          <Save size={16} /> {busy ? 'Zapisywanie…' : 'Zapisz parametry'}
         </button>
       </div>
 
       {msg && <div className="alert info">✓ {msg}</div>}
       <ErrorAlert error={error} />
 
-      <div className="card pad" style={{ marginBottom: 20 }}>
-        <h3>Ustawienia</h3>
-        <div className="grid cols-2">
-          {SETTING_FIELDS.map(([k, label]) => (
-            <Field key={k} label={label}>
-              <input type="number" value={settings[k] ?? ''} onChange={(e) => setS(k, e.target.value)} />
-            </Field>
-          ))}
+      <div className="grid cols-3">
+        <div className="card pad">
+          <h3 style={{ margin: '0 0 16px' }}>Waluta i dostęp</h3>
+          <div className="grid">
+            <SField k="jrExchangeRate" />
+            <SField k="demoAccessDays" />
+            <SField k="accessPrice" />
+          </div>
         </div>
-      </div>
 
-      <div className="card">
-        <div className="pad" style={{ paddingBottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-          <h3>Globalne progi prowizji</h3>
-          <button
-            className="btn sm"
-            onClick={() => setThresholds((ts) => [...ts, { lowLimit: 0, highLimit: 0, value: 0 }])}
-          >
-            + Dodaj
-          </button>
+        <div className="card pad">
+          <h3 style={{ margin: '0 0 16px' }}>Progi i ochrona</h3>
+          <div className="grid">
+            <SField k="minJrForVip" />
+            <SField k="minJrForBonus" />
+            <SField k="jrProtectionPeriodDays" />
+            <SField k="jrWithdrawalPeriodDays" />
+          </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Dolny limit</th>
-              <th>Górny limit</th>
-              <th>Wartość %</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
+
+        <div className="card pad">
+          <h3 style={{ margin: '0 0 16px' }}>Progi prowizji partnerskich</h3>
+          <div className="grid">
             {thresholds.map((t, i) => (
-              <tr key={i}>
-                <td>
-                  <input type="number" value={t.lowLimit ?? ''} onChange={(e) => setT(i, 'lowLimit', e.target.value)} />
-                </td>
-                <td>
-                  <input type="number" value={t.highLimit ?? ''} onChange={(e) => setT(i, 'highLimit', e.target.value)} />
-                </td>
-                <td>
-                  <input type="number" value={t.value ?? ''} onChange={(e) => setT(i, 'value', e.target.value)} />
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <button
-                    className="btn sm danger"
-                    onClick={() => setThresholds((ts) => ts.filter((_, idx) => idx !== i))}
-                  >
-                    Usuń
-                  </button>
-                </td>
-              </tr>
+              <Field key={i} label={`Poziom ${i + 1} (%)`}>
+                <input type="number" value={t.value ?? ''} onChange={(e) => setT(i, 'value', e.target.value)} />
+              </Field>
             ))}
-          </tbody>
-        </table>
+            <SField k="partnerTerm" />
+          </div>
+        </div>
       </div>
     </div>
   );

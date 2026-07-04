@@ -1,9 +1,25 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, Pencil, Trash2, Save } from 'lucide-react';
 import { api, date } from '../api';
 import { Spinner, Empty, Field, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
 
 const EMPTY = { title: '', content: '', photo: '' };
+
+function StatusPill({ item }: { item: any }) {
+  const draft =
+    item.draft === true ||
+    item.published === false ||
+    item.isPublished === false ||
+    item.active === false ||
+    item.status === 'draft';
+  return draft ? (
+    <span className="badge amber"><span className="pdot" /> Wersja robocza</span>
+  ) : (
+    <span className="badge green"><span className="pdot" /> Opublikowany</span>
+  );
+}
 
 export default function News() {
   const [items, setItems] = useState<any[]>([]);
@@ -34,51 +50,59 @@ export default function News() {
   return (
     <div>
       <div className="page-head">
-        <h1>Aktualności</h1>
+        <div>
+          <h1>Treści</h1>
+          <p className="sub">Zarządzanie aktualnościami i pytaniami FAQ.</p>
+        </div>
         <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-          + Dodaj aktualność
+          <Plus size={16} /> Dodaj wpis
         </button>
+      </div>
+
+      <div className="tabs">
+        <Link to="/news" className="active">Aktualności</Link>
+        <Link to="/faq">FAQ</Link>
       </div>
 
       <ErrorAlert error={error} />
 
-      <div className="card">
+      <div className="table-card">
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
           <Empty>Brak aktualności.</Empty>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Tytuł</th>
-                <th>Treść</th>
-                <th>Data</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((n) => (
-                <tr key={n.id}>
-                  <td>
-                    <b>{n.title}</b>
-                  </td>
-                  <td className="muted" style={{ maxWidth: 340 }}>
-                    {(n.content || '').slice(0, 100)}
-                  </td>
-                  <td>{date(n.createdAt)}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn sm" style={{ marginRight: 6 }} onClick={() => setEdit(n)}>
-                      Edytuj
-                    </button>
-                    <button className="btn sm danger" onClick={() => del(n.id)}>
-                      Usuń
-                    </button>
-                  </td>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tytuł</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Akcje</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((n) => (
+                  <tr key={n.id}>
+                    <td><b>{n.title}</b></td>
+                    <td className="dy-num">{date(n.createdAt)}</td>
+                    <td><StatusPill item={n} /></td>
+                    <td className="actions">
+                      <div style={{ display: 'inline-flex', gap: 6 }}>
+                        <button className="act" title="Edytuj" onClick={() => setEdit(n)}>
+                          <Pencil size={15} />
+                        </button>
+                        <button className="act del" title="Usuń" onClick={() => del(n.id)}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -132,12 +156,12 @@ function NewsModal({ entry, onClose, onSaved }: { entry: any; onClose: () => voi
         <Field label="Adres URL zdjęcia">
           <input value={form.photo || ''} onChange={(e) => set('photo', e.target.value)} />
         </Field>
-        <div className="btn-row" style={{ justifyContent: 'flex-end' }}>
+        <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" className="btn ghost" onClick={onClose}>
             Anuluj
           </button>
           <button type="submit" className="btn primary" disabled={busy}>
-            {busy ? 'Zapisywanie…' : 'Zapisz'}
+            <Save size={16} /> {busy ? 'Zapisywanie…' : 'Zapisz'}
           </button>
         </div>
       </form>

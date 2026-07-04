@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { Shield, Plus } from 'lucide-react';
 import { api, date } from '../api';
 import { useAuth } from '../auth';
-import { Spinner, Empty, Field, YesNo, ErrorAlert } from '../components/ui';
+import { Spinner, Empty, Field, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
 import { PERMISSION_KEYS, PERMISSION_LEVELS } from '../constants';
+
+const nameOf = (a: any) =>
+  a?.name || [a?.firstName, a?.lastName].filter(Boolean).join(' ') || a?.email || '—';
 
 export default function Admins() {
   const { admin } = useAuth();
@@ -11,6 +15,11 @@ export default function Admins() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
+
+  const [selectedId, setSelectedId] = useState<any>(null);
+  const [permissions, setPermissions] = useState<Record<string, number>>({});
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -23,53 +32,182 @@ export default function Admins() {
 
   useEffect(load, []);
 
+  // Auto-select first admin once loaded.
+  useEffect(() => {
+    if (items.length && (selectedId == null || !items.some((a) => a.id === selectedId))) {
+      setSelectedId(items[0].id);
+    }
+  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selected = items.find((a) => a.id === selectedId) || null;
+
+  // Sync the local matrix state to the selected admin.
+  useEffect(() => {
+    setPermissions(selected?.permissions || {});
+    setMsg(null);
+  }, [selectedId, items]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const savePerms = async () => {
+    if (!selected) return;
+    setSaving(true);
+    setError(null);
+    setMsg(null);
+    try {
+      await api.patch(`/admin/users/${selected.id}/user-data`, {
+        name: selected.name,
+        phone: selected.phone,
+        permissions,
+      });
+      setMsg('Zapisano uprawnienia');
+      load();
+    } catch (err: any) {
+      setError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div>
       <div className="page-head">
-        <h1>Administratorzy CMS</h1>
+        <div>
+          <h1>Administratorzy</h1>
+          <p className="sub">Konta CMS i uprawnienia per-moduł.</p>
+        </div>
         {admin?.superAdmin && (
           <button className="btn primary" onClick={() => setShowAdd(true)}>
-            + Dodaj użytkownika
+            <Plus size={17} /> Dodaj administratora
           </button>
         )}
       </div>
 
       <ErrorAlert error={error} />
 
-      <div className="card">
-        {loading ? (
+      {loading ? (
+        <div className="card">
           <Spinner />
-        ) : items.length === 0 ? (
+        </div>
+      ) : items.length === 0 ? (
+        <div className="card">
           <Empty>Nie znaleziono administratorów.</Empty>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Imię</th>
-                <th>E-mail</th>
-                <th>Telefon</th>
-                <th>Super administrator</th>
-                <th>Ostatnie logowanie</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((a) => (
-                <tr key={a.id}>
-                  <td>
-                    <b>{a.name || [a.firstName, a.lastName].filter(Boolean).join(' ') || '—'}</b>
-                  </td>
-                  <td>{a.email}</td>
-                  <td>{a.phone || '—'}</td>
-                  <td>
-                    <YesNo value={a.superAdmin} />
-                  </td>
-                  <td>{date(a.lastLogin || a.lastLoginAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="grid" style={{ gridTemplateColumns: '1fr 1.15fr' }}>
+          {/* LEFT — accounts */}
+          <div className="card pad">
+            <h3 style={{ margin: '0 0 14px' }}>Konta administratorów</h3>
+            <div>
+              {items.map((a) => {
+                const active = a.id === selectedId;
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => setSelectedId(a.id)}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      alignItems: 'flex-start',
+                      padding: '12px 12px',
+                      borderRadius: 11,
+                      cursor: 'pointer',
+                      border: '1px solid ' + (active ? 'var(--brand)' : 'transparent'),
+                      background: active ? 'var(--brand-tint)' : 'transparent',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <div className="av-sq">
+                      <Shield size={18} />
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <b style={{ display: 'block' }}>{nameOf(a)}</b>
+                      <div className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
+                        {a.email}
+                      </div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        ost. logowanie {date(a.lastLogin || a.lastLoginAt)}
+                      </div>
+                    </div>
+                    <span className={`badge ${a.superAdmin ? 'green' : 'blue'}`}>
+                      {a.superAdmin ? 'Super administrator' : 'Administrator'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* RIGHT — permission matrix */}
+          <div className="card pad">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
+                gap: 12,
+                flexWrap: 'wrap',
+                marginBottom: 14,
+              }}
+            >
+              <h3 style={{ margin: 0 }}>Macierz uprawnień — {nameOf(selected)}</h3>
+              <span className="muted" style={{ fontSize: 12 }}>
+                0 = brak · 1 = podgląd · 2 = edycja
+              </span>
+            </div>
+
+            {msg && <div className="alert info">✓ {msg}</div>}
+
+            <div className="table-card">
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Moduł</th>
+                      {PERMISSION_LEVELS.map((l) => (
+                        <th key={l.value} style={{ textAlign: 'center', width: 90 }}>
+                          {l.value === 0 ? 'Brak' : l.value === 1 ? 'Podgląd' : 'Edycja'}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PERMISSION_KEYS.map((p) => {
+                      const level = permissions[p.key] ?? 0;
+                      return (
+                        <tr key={p.key}>
+                          <td>{p.label}</td>
+                          {PERMISSION_LEVELS.map((l) => (
+                            <td key={l.value} style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                className={`perm-sq${level === l.value ? ' on' : ''}`}
+                                onClick={() =>
+                                  setPermissions((prev) => ({ ...prev, [p.key]: l.value }))
+                                }
+                              >
+                                {l.value}
+                              </button>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="btn-row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+              <button
+                className="btn primary"
+                onClick={savePerms}
+                disabled={saving || !selected}
+              >
+                {saving ? 'Zapisywanie…' : 'Zapisz uprawnienia'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAdd && (
         <AddUserModal
@@ -114,7 +252,7 @@ function AddUserModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
   };
 
   return (
-    <Modal title="Dodaj użytkownika" onClose={onClose} wide>
+    <Modal title="Dodaj administratora" onClose={onClose} wide>
       <form onSubmit={submit}>
         <ErrorAlert error={error} />
         <Field label="Typ konta">
@@ -154,33 +292,47 @@ function AddUserModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =
         )}
         {type === 2 && (
           <div style={{ marginBottom: 14 }}>
-            <span style={{ fontWeight: 600, fontSize: 13, display: 'block', marginBottom: 8 }}>
+            <span style={{ fontWeight: 600, fontSize: 13, display: 'block', margin: '10px 0 8px' }}>
               Uprawnienia
             </span>
-            <div className="card">
-              <table>
-                <tbody>
-                  {PERMISSION_KEYS.map((p) => (
-                    <tr key={p.key}>
-                      <td>{p.label}</td>
-                      <td style={{ width: 160 }}>
-                        <select
-                          value={permissions[p.key] ?? 0}
-                          onChange={(e) =>
-                            setPermissions((prev) => ({ ...prev, [p.key]: Number(e.target.value) }))
-                          }
-                        >
-                          {PERMISSION_LEVELS.map((l) => (
-                            <option key={l.value} value={l.value}>
-                              {l.label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
+            <div className="table-card">
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Moduł</th>
+                      {PERMISSION_LEVELS.map((l) => (
+                        <th key={l.value} style={{ textAlign: 'center', width: 90 }}>
+                          {l.value === 0 ? 'Brak' : l.value === 1 ? 'Podgląd' : 'Edycja'}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {PERMISSION_KEYS.map((p) => {
+                      const level = permissions[p.key] ?? 0;
+                      return (
+                        <tr key={p.key}>
+                          <td>{p.label}</td>
+                          {PERMISSION_LEVELS.map((l) => (
+                            <td key={l.value} style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                className={`perm-sq${level === l.value ? ' on' : ''}`}
+                                onClick={() =>
+                                  setPermissions((prev) => ({ ...prev, [p.key]: l.value }))
+                                }
+                              >
+                                {l.value}
+                              </button>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

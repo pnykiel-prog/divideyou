@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { api, jr } from '../api';
-import { Spinner, Empty, Field, YesNo, ErrorAlert } from '../components/ui';
+import { Spinner, Empty, Field, ErrorAlert } from '../components/ui';
 import Modal from '../components/Modal';
+
+function StatusPill({ b }: { b: any }) {
+  if (b.draft || b.isDraft || b.status === 'draft')
+    return <span className="badge amber"><span className="pdot" />Wersja robocza</span>;
+  if (b.visible) return <span className="badge green"><span className="pdot" />Widoczny</span>;
+  return <span className="badge gray"><span className="pdot" />Ukryty</span>;
+}
 
 const num = (v: any) => (v === '' || v == null ? undefined : Number(v));
 
@@ -58,60 +66,67 @@ export default function Bonuses() {
   return (
     <div>
       <div className="page-head">
-        <h1>Bonusy</h1>
+        <div>
+          <h1>Bonusy</h1>
+          <p className="sub">Oferty dodatkowe (flaga bonus) z minimalnym saldem JR.</p>
+        </div>
         <button className="btn primary" onClick={() => setEdit({ ...EMPTY })}>
-          + Dodaj bonus
+          <Plus size={16} /> Dodaj bonus
         </button>
       </div>
 
       <ErrorAlert error={error} />
 
-      <div className="card">
-        {loading ? (
+      {loading ? (
+        <div className="table-card">
           <Spinner />
-        ) : items.length === 0 ? (
+        </div>
+      ) : items.length === 0 ? (
+        <div className="table-card">
           <Empty>Brak bonusów.</Empty>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Opłata wstępna</th>
-                <th>Maks. zakupów</th>
-                <th>VIP</th>
-                <th>Widoczny</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((b) => (
-                <tr key={b.id}>
-                  <td>
-                    <b>{b.name}</b>
-                    <div className="muted">{(b.description || '').slice(0, 60)}</div>
-                  </td>
-                  <td>{jr(b.entryFee)}</td>
-                  <td>{b.maxPurchases ?? '—'}</td>
-                  <td>
-                    <YesNo value={b.vip} />
-                  </td>
-                  <td>
-                    <YesNo value={b.visible} />
-                  </td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn sm" style={{ marginRight: 6 }} onClick={() => openEdit(b.id)}>
-                      Edytuj
-                    </button>
-                    <button className="btn sm danger" onClick={() => del(b.id)}>
-                      Usuń
-                    </button>
-                  </td>
+        </div>
+      ) : (
+        <div className="table-card">
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa</th>
+                  <th className="num">Cena JR</th>
+                  <th className="num">Min. saldo JR</th>
+                  <th className="num">Zakupy</th>
+                  <th>Status</th>
+                  <th className="num">Akcje</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {items.map((b) => (
+                  <tr key={b.id}>
+                    <td>
+                      <b>{b.name}</b>
+                      {b.description && <div className="muted">{(b.description || '').slice(0, 60)}</div>}
+                    </td>
+                    <td className="num dy-num" style={{ fontWeight: 700 }}>{jr(b.entryFee)}</td>
+                    <td className="num dy-num">{b.minimalJrForView ?? 0}</td>
+                    <td className="num dy-num">{b.purchaseCount ?? 0}</td>
+                    <td>
+                      <StatusPill b={b} />
+                    </td>
+                    <td className="actions">
+                      <button className="act" title="Edytuj" onClick={() => openEdit(b.id)}>
+                        <Pencil size={15} />
+                      </button>
+                      <button className="act del" title="Usuń" onClick={() => del(b.id)}>
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {edit && (
         <BonusModal
