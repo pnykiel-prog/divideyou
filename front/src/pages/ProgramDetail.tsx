@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
 import { Spinner, Empty, Bg, keywordFor } from '../ui';
 import { MapPin, ChevronRight, Info, ArrowRight } from 'lucide-react';
+import LocationsMap from '../components/LocationsMap';
 
 export default function ProgramDetail() {
   const { id } = useParams();
@@ -51,6 +52,14 @@ export default function ProgramDetail() {
             />
           </div>
         </div>
+
+        {filtered.some((l) => l.latitude != null && l.longitude != null) && (
+          <LocationsMap
+            points={filtered.map((l) => ({ id: l.id, name: l.name, city: l.city, lat: l.latitude, lng: l.longitude, to: `/location/${l.id}` }))}
+            height={300}
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         {filtered.length === 0 ? (
           <Empty>Brak dostępnych lokalizacji dla wybranych filtrów.</Empty>

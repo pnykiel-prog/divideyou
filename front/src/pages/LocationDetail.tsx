@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api, jr } from '../api';
 import { useToast, Spinner, Empty, ErrorAlert, Bg, keywordFor } from '../ui';
+import LocationsMap from '../components/LocationsMap';
 
 const DOCS = [
   'Umowa uczestnictwa (PDF)',
@@ -153,6 +154,13 @@ export default function LocationDetail() {
           </div>
           {loc.description && (
             <p style={{ color: 'var(--ink-2)', lineHeight: 1.65, marginTop: 16 }}>{loc.description}</p>
+          )}
+          {loc.latitude != null && loc.longitude != null && (
+            <LocationsMap
+              points={[{ id: loc.id, name: loc.name, city: loc.city, lat: loc.latitude, lng: loc.longitude }]}
+              height={240}
+              style={{ marginTop: 16 }}
+            />
           )}
 
           <div className="card" style={{ marginTop: 22 }}>

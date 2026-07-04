@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
 import { Spinner, Empty, Bg, keywordFor } from '../ui';
 import { MapPin, Search, Filter, Star } from 'lucide-react';
+import LocationsMap from '../components/LocationsMap';
 
 export default function Programs({ vip }: { vip: boolean }) {
   const { tab = 'available' } = useParams();
@@ -10,6 +11,7 @@ export default function Programs({ vip }: { vip: boolean }) {
   const [query, setQuery] = useState('');
   const [radius, setRadius] = useState(15);
   const [loading, setLoading] = useState(true);
+  const [locs, setLocs] = useState<any[]>([]);
   const base = vip ? '/vip-programs' : '/programs';
 
   useEffect(() => {
@@ -23,6 +25,17 @@ export default function Programs({ vip }: { vip: boolean }) {
       .then((d) => setItems(tab === 'my' ? d.map((p: any) => p.location || p.program || p) : d))
       .finally(() => setLoading(false));
   }, [tab, vip, query]);
+
+  // Locations for the map (all available network, filtered by the same search).
+  useEffect(() => {
+    api.get(`/locations/available${query ? `?query=${encodeURIComponent(query)}` : ''}`)
+      .then(setLocs)
+      .catch(() => setLocs([]));
+  }, [query]);
+
+  const mapPoints = locs.map((l: any) => ({
+    id: l.id, name: l.name, city: l.city, lat: l.latitude, lng: l.longitude, to: `/location/${l.id}`,
+  }));
 
   const myTab = tab === 'my';
 
@@ -89,14 +102,9 @@ export default function Programs({ vip }: { vip: boolean }) {
         </div>
 
         <div className="sticky-col">
-          <div className="map-panel">
-            <MapPin className="map-pin" size={26} style={{ top: '22%', left: '28%', color: 'var(--c-active)' }} fill="currentColor" strokeWidth={0} />
-            <MapPin className="map-pin" size={22} style={{ top: '46%', left: '62%', color: 'var(--c-pending)' }} fill="currentColor" strokeWidth={0} />
-            <MapPin className="map-pin" size={24} style={{ top: '68%', left: '40%', color: 'var(--c-payout)' }} fill="currentColor" strokeWidth={0} />
-            <MapPin className="map-pin" size={20} style={{ top: '34%', left: '78%', color: 'var(--c-commission)' }} fill="currentColor" strokeWidth={0} />
-            <div style={{ position: 'absolute', bottom: 12, left: 12, right: 12, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-2)' }}>
-              Programy w Twojej okolicy — podgląd mapy.
-            </div>
+          <LocationsMap points={mapPoints} height={360} />
+          <div className="muted" style={{ fontSize: 12, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <MapPin size={13} /> {mapPoints.length} lokalizacji na mapie — kliknij pinezkę, aby otworzyć.
           </div>
           <div className="card card-pad" style={{ marginTop: 16 }}>
             <div className="between" style={{ marginBottom: 10 }}>

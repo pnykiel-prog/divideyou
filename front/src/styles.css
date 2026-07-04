@@ -300,6 +300,12 @@ button { font-family: inherit; }
 .mediabg > .media-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, .05) 60%); }
 .mediabg > *:not(img.media-img) { position: relative; z-index: 2; }
 
+/* leaflet map theming */
+.leaflet-container { font-family: 'Hanken Grotesk', sans-serif; background: var(--bg-2); }
+.dy-pin svg { filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)); cursor: pointer; }
+.leaflet-tooltip { font-size: 12.5px; border-radius: 8px; border: 1px solid var(--line); box-shadow: var(--sh-card); }
+.leaflet-control-attribution { font-size: 9px; }
+
 /* map placeholder */
 .map-panel { background: repeating-linear-gradient(0deg, var(--bg-2), var(--bg-2) 1px, var(--surface) 1px, var(--surface) 34px), repeating-linear-gradient(90deg, var(--bg-2), var(--bg-2) 1px, var(--surface) 1px, var(--surface) 34px); border: 1px solid var(--line); border-radius: 14px; min-height: 320px; position: relative; overflow: hidden; }
 .map-pin { position: absolute; }
