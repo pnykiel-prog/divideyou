@@ -294,6 +294,12 @@ button { font-family: inherit; }
 .prog-foot .v { font-family: 'Newsreader', serif; font-weight: 600; font-size: 16px; color: var(--ink); }
 .prog-foot .v.sub { color: var(--brand-600); }
 
+/* photo media (real image over gradient fallback) */
+.mediabg { position: relative; overflow: hidden; }
+.mediabg > img.media-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.mediabg > .media-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, .05) 60%); }
+.mediabg > *:not(img.media-img) { position: relative; z-index: 2; }
+
 /* map placeholder */
 .map-panel { background: repeating-linear-gradient(0deg, var(--bg-2), var(--bg-2) 1px, var(--surface) 1px, var(--surface) 34px), repeating-linear-gradient(90deg, var(--bg-2), var(--bg-2) 1px, var(--surface) 1px, var(--surface) 34px); border: 1px solid var(--line); border-radius: 14px; min-height: 320px; position: relative; overflow: hidden; }
 .map-pin { position: absolute; }

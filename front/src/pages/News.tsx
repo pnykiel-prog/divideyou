@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Calendar } from 'lucide-react';
 import { api } from '../api';
-import { Spinner, Empty, gradient } from '../ui';
+import { Spinner, Empty, Bg, keywordFor } from '../ui';
 
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -37,9 +37,9 @@ function NewsFeed() {
         <div className="news-masonry">
           {items.map((n, i) => (
             <article key={n.id} className="news-card" onClick={() => n.slug && nav(`/news/${n.slug}`)} style={{ cursor: n.slug ? 'pointer' : 'default' }}>
-              <div className="news-media" style={{ background: gradient(n.id || n.slug), height: 120 + (i % 3) * 40 }}>
+              <Bg q={keywordFor(n.title, 'newspaper,office')} seed={n.id || n.slug} w={800} h={400} className="news-media" style={{ height: 120 + (i % 3) * 40 }}>
                 <span className="badge badge-rec">Aktualność</span>
-              </div>
+              </Bg>
               <div className="news-body">
                 <div className="row muted" style={{ gap: 6, fontSize: 12.5 }}>
                   <Calendar size={13} /> {fmtDate(n.createdAt)}
@@ -80,9 +80,9 @@ function NewsDetail({ slug }: { slug: string }) {
         <ArrowLeft size={16} /> Wróć do aktualności
       </a>
       <div className="card" style={{ overflow: 'hidden' }}>
-        <div style={{ background: gradient(item.id || item.slug), height: 200, display: 'flex', alignItems: 'flex-start', padding: 16 }}>
+        <Bg q={keywordFor(item.title, 'newspaper,office')} seed={item.id || item.slug} w={1200} h={420} className="news-media" style={{ height: 200, display: 'flex', alignItems: 'flex-start', padding: 16 }}>
           <span className="badge badge-rec">Aktualność</span>
-        </div>
+        </Bg>
         <div className="card-pad">
           <div className="row muted" style={{ gap: 6, fontSize: 12.5 }}>
             <Calendar size={13} /> {fmtDate(item.createdAt)}

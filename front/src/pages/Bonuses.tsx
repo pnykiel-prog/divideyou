@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
-import { Spinner, Empty, gradient } from '../ui';
+import { Spinner, Empty, Bg, keywordFor } from '../ui';
 import { Gift, ArrowRight } from 'lucide-react';
 
 export default function Bonuses() {
@@ -44,13 +44,13 @@ function BonusCard({ b }: { b: any }) {
   const nav = useNavigate();
   return (
     <div className="prog-card" onClick={() => nav(`/bonus/${b.id}`)}>
-      <div className="prog-media" style={{ height: 96, background: gradient(b.id) }}>
+      <Bg q={keywordFor(b.name, 'gift,voucher')} seed={b.id} w={800} h={300} className="prog-media" style={{ height: 96 }}>
         <span className="prog-badges">
           <span className="badge" style={{ background: 'rgba(255,255,255,.9)', color: 'var(--brand-600)' }}>
             <Gift size={13} /> BONUS
           </span>
         </span>
-      </div>
+      </Bg>
       <div className="prog-body">
         <div className="prog-cat">Bonus</div>
         <div className="prog-name">{b.name}</div>

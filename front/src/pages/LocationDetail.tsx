@@ -4,7 +4,7 @@ import {
   MapPin, Download, Heart, FileText, X, ArrowRight, Check, Info as InfoIcon,
 } from 'lucide-react';
 import { api, jr } from '../api';
-import { useToast, Spinner, Empty, ErrorAlert, gradient } from '../ui';
+import { useToast, Spinner, Empty, ErrorAlert, Bg, keywordFor } from '../ui';
 
 const DOCS = [
   'Umowa uczestnictwa (PDF)',
@@ -139,10 +139,10 @@ export default function LocationDetail() {
       <div className="grid-detail">
         {/* ---- Left: gallery + info + attachments ---- */}
         <div>
-          <div className="gallery-main" style={{ background: gradient(id!) }} />
+          <Bg q={keywordFor(loc.name)} seed={id!} w={1000} h={520} className="gallery-main" />
           <div className="gallery-thumbs">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="gallery-thumb" style={{ background: gradient(`${id}-${i}`) }} />
+              <Bg key={i} q={keywordFor(loc.name)} seed={`${id}-${i}`} w={240} h={160} className="gallery-thumb" />
             ))}
           </div>
 

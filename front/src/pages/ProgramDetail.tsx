@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
-import { Spinner, Empty, gradient } from '../ui';
+import { Spinner, Empty, Bg, keywordFor } from '../ui';
 import { MapPin, ChevronRight, Info, ArrowRight } from 'lucide-react';
 
 export default function ProgramDetail() {
@@ -24,14 +24,14 @@ export default function ProgramDetail() {
   return (
     <div className="grid-detail">
       <div>
-        <div className="hero-media" style={{ background: gradient(id!) }}>
+        <Bg q={keywordFor(program.name)} seed={id!} w={1200} h={420} overlay className="hero-media">
           <div className="prog-badges" style={{ position: 'absolute', top: 16, left: 16 }}>
             {program.vip && <span className="badge badge-vip">VIP</span>}
             {program.recommended && <span className="badge badge-rec">POLECANY</span>}
           </div>
           <div className="prog-cat" style={{ color: 'rgba(255,255,255,.82)' }}>{cat}</div>
           <h1>{program.name}</h1>
-        </div>
+        </Bg>
 
         <div className="card card-pad" style={{ marginTop: 18 }}>
           <div className="card-title" style={{ marginBottom: 8 }}>O programie</div>

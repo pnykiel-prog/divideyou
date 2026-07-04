@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
-import { Spinner, Empty, gradient } from '../ui';
+import { Spinner, Empty, Bg, keywordFor } from '../ui';
 import { MapPin, Search, Filter, Star } from 'lucide-react';
 
 export default function Programs({ vip }: { vip: boolean }) {
@@ -134,13 +134,13 @@ function ProgramCard({ p, myTab, vipPage, observedTab }: { p: any; myTab: boolea
 
   return (
     <div className="prog-card" onClick={() => nav(to)}>
-      <div className="prog-media" style={{ background: gradient(p.id) }}>
+      <Bg q={keywordFor(p.name)} seed={p.id} w={800} h={360} className="prog-media">
         <div className="prog-badges">
           {isVip && <span className="badge badge-vip">VIP</span>}
           {isRec && <span className="badge badge-rec">POLECANY</span>}
           {isObs && <span className="badge badge-obs">OBSERWOWANY</span>}
         </div>
-      </div>
+      </Bg>
       <div className="prog-body">
         <div className="prog-cat">{cat}</div>
         <div className="prog-name">{p.name}</div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, jr } from '../api';
-import { Spinner, ErrorAlert, gradient } from '../ui';
+import { Spinner, ErrorAlert, Bg, keywordFor } from '../ui';
 import { ArrowLeft, Gift, ShieldCheck } from 'lucide-react';
 
 export default function BonusDetail() {
@@ -54,18 +54,18 @@ export default function BonusDetail() {
 
       <div className="grid-detail">
         <div>
-          <div className="hero-media" style={{ background: gradient(bonus.id), marginBottom: 16 }}>
+          <Bg q={keywordFor(bonus.name, 'gift,voucher')} seed={bonus.id} w={1200} h={420} overlay className="hero-media" style={{ marginBottom: 16 }}>
             <span className="badge" style={{ background: 'rgba(255,255,255,.9)', color: 'var(--brand-600)', alignSelf: 'flex-start' }}>
               <Gift size={13} /> BONUS
             </span>
             <div className="grow" />
             <h1>{bonus.name}</h1>
-          </div>
+          </Bg>
 
           {gallery.length > 0 && (
             <div className="gallery-thumbs" style={{ marginBottom: 16 }}>
               {gallery.slice(0, 4).map((_, i) => (
-                <div key={i} className="gallery-thumb" style={{ background: gradient(`${bonus.id}-${i}`) }} />
+                <Bg key={i} q={keywordFor(bonus.name, 'gift,voucher')} seed={`${bonus.id}-${i}`} w={240} h={160} className="gallery-thumb" />
               ))}
             </div>
           )}
